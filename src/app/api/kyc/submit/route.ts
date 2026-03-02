@@ -1,0 +1,45 @@
+import { NextResponse } from 'next/server';
+import dbConnect from '@/lib/mongodb';
+import KYCDocument from '@/models/KYCDocument';
+
+export async function POST(req: Request) {
+    try {
+        await dbConnect();
+
+        // We use req.formData() because we are expecting raw files to be sent
+        const formData = await req.formData();
+
+        const aadhaarFile = formData.get('aadhaarFile') as File;
+        const panFile = formData.get('panFile') as File;
+
+        if (!aadhaarFile || !panFile) {
+            return NextResponse.json({ success: false, error: "Missing identity documents." }, { status: 400 });
+        }
+
+        // Convert raw File buffers to Base64 strings for storing in Atlas Document
+        const aadhaarBuffer = Buffer.from(await aadhaarFile.arrayBuffer());
+        const panBuffer = Buffer.from(await panFile.arrayBuffer());
+
+        // Prefix with Data URI format so frontend can easily render them directly into <img src="..." />
+        const aadhaarBase64 = `data:${aadhaarFile.type};base64,${aadhaarBuffer.toString('base64')}`;
+        const panBase64 = `data:${panFile.type};base64,${panBuffer.toString('base64')}`;
+
+        // Randomly simulate an OCR matching score algorithm for realism (80-99%)
+        const simulatedScore = Math.floor(Math.random() * 20) + 80;
+
+        const kycRecord = await KYCDocument.create({
+            name: formData.get('name') || "Anonymous User",
+            type: formData.get('type') || "Startup Founder",
+            aadhaar: formData.get('aadhaar'),
+            pan: formData.get('pan'),
+            aadhaarFile: aadhaarBase64,
+            panFile: panBase64,
+            matchScore: simulatedScore
+        });
+
+        return NextResponse.json({ success: true, data: kycRecord }, { status: 201 });
+    } catch (error: any) {
+        console.error("KYC Submit Form Failed:", error);
+        return NextResponse.json({ success: false, error: error.message || 'Internal Server Error' }, { status: 500 });
+    }
+}

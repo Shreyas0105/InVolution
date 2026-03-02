@@ -1,0 +1,272 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { ArrowLeft, MessageSquare, Briefcase, TrendingUp, Presentation, CheckCircle2, Factory, LineChart, AlertTriangle, Activity } from "lucide-react";
+
+// Remove mock data. We will fetch dynamically now.
+
+export default function StartupProfile() {
+    const params = useParams();
+    const idValue = Array.isArray(params.id) ? params.id[0] : params.id;
+    const [startup, setStartup] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchStartup = async () => {
+            try {
+                // We're reusing the /api/startups GET which currently returns all
+                // In a production app, we'd make a dedicated /api/startups/[id] GET
+                const res = await fetch('/api/startups');
+                const json = await res.json();
+                if (json.success) {
+                    const match = json.data.find((s: any) => s._id === idValue || s.id === Number(idValue));
+                    setStartup(match);
+                }
+            } catch (error) {
+                console.error("Failed to load startup", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        if (idValue) fetchStartup();
+    }, [idValue]);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center pt-24 pb-20">
+                <div className="py-24 text-center">
+                    <Activity className="w-16 h-16 text-indigo-500 animate-spin mx-auto mb-4" />
+                    <h3 className="text-2xl font-bold text-slate-300">Decrypting Profile...</h3>
+                </div>
+            </div>
+        );
+    }
+
+    if (!startup) {
+        return (
+            <div className="min-h-screen flex items-center justify-center pt-24 pb-20">
+                <div className="text-center">
+                    <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                    <h3 className="text-2xl font-bold text-white mb-2">Startup Not Found</h3>
+                    <p className="text-slate-400">This profile might have been delisted or restricted.</p>
+                    <Link href="/investors/search" className="mt-6 inline-block px-6 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700">Return to Search</Link>
+                </div>
+            </div>
+        );
+    }
+
+    // Multi-Graph Data Generation Helpers
+    const generatePath = (data: number[]) => {
+        if (!data || data.length === 0) return { path: "", area: "", max: 0, min: 0 };
+        const max = Math.max(...data);
+        const min = Math.min(...data);
+        const range = max - min || 1;
+
+        const pathData = data.map((val, i) => {
+            const x = (i / (data.length - 1)) * 100;
+            const y = 100 - ((val - min) / range) * 100;
+            return `${i === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`;
+        }).join(' ');
+
+        const areaPath = `${pathData} L 100 100 L 0 100 Z`;
+        return { path: pathData, area: areaPath, max, min };
+    };
+
+    const revChart = generatePath(startup.financials?.revenue || []);
+    const profitChart = generatePath(startup.financials?.netProfit || []);
+
+    return (
+        <div className="min-h-screen pb-20">
+            {/* Hero Header */}
+            <div className="bg-slate-900 border-b border-white/10 pt-8 pb-16">
+                <div className="container mx-auto px-6 max-w-5xl">
+                    <Link href="/investors/search" className="inline-flex items-center gap-2 text-slate-400 hover:text-white mb-8 transition-colors">
+                        <ArrowLeft className="w-4 h-4" /> Back to Search
+                    </Link>
+
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+                        <div className="flex items-center gap-6">
+                            <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-pink-500/20 border border-white/10 flex items-center justify-center shadow-2xl">
+                                <span className="text-4xl font-bold font-outfit text-white">{startup.name.charAt(0)}</span>
+                            </div>
+                            <div>
+                                <div className="flex items-center gap-3 mb-2">
+                                    <h1 className="text-4xl font-bold font-outfit text-white">{startup.name}</h1>
+                                    <span className="px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full text-xs font-bold text-green-400 flex items-center gap-1">
+                                        <CheckCircle2 className="w-3 h-3" /> KYC Verified
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-4 text-sm text-slate-300 font-medium">
+                                    <span className="flex items-center gap-1"><Factory className="w-4 h-4 text-slate-400" /> {startup.sector} • {startup.businessModel}</span>
+                                    <span className="flex items-center gap-1 text-slate-500">|</span>
+                                    <span className="flex items-center gap-1"><AlertTriangle className={`w-4 h-4 ${startup.risk === 'Low' ? 'text-green-400' : 'text-yellow-400'}`} /> {startup.risk} Risk Profile</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <Link href={`/messages?name=${encodeURIComponent(startup.name)}`} className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-lg shadow-indigo-500/25 flex items-center gap-2 w-full md:w-auto justify-center">
+                            <MessageSquare className="w-5 h-5" /> Open Deal Room
+                        </Link>
+                    </div>
+                </div>
+            </div>
+
+            <div className="container mx-auto px-6 max-w-5xl mt-8 grid md:grid-cols-3 gap-8">
+
+                {/* Main Content */}
+                <div className="md:col-span-2 space-y-8">
+                    {/* Pitch Section */}
+                    <div className="glass-panel p-8 rounded-2xl">
+                        <h2 className="text-xl font-bold text-white mb-4 border-b border-white/10 pb-4 flex items-center gap-2">
+                            <Presentation className="w-5 h-5 text-pink-400" /> Executive Standard Pitch
+                        </h2>
+                        <p className="text-slate-300 leading-relaxed font-inter">{startup.desc}</p>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
+                            {startup.videos?.map((vid: any, idx: number) => (
+                                <div key={idx} className="aspect-video bg-black/50 border border-slate-700 rounded-xl flex items-center justify-center relative overflow-hidden group shadow-lg">
+                                    {vid.url ? (
+                                        <iframe
+                                            src={vid.url}
+                                            title={vid.title}
+                                            className="absolute inset-0 w-full h-full object-cover"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                        ></iframe>
+                                    ) : (
+                                        <>
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-4 z-10 transition-opacity">
+                                                <h3 className="text-white font-bold text-sm leading-tight">{vid.title}</h3>
+                                                {idx === 0 && <p className="text-slate-300 text-[10px] mt-1">Exclusive Verified Pitch</p>}
+                                            </div>
+                                            <div className="w-12 h-12 rounded-full bg-white/10 group-hover:bg-white/20 backdrop-blur-md flex items-center justify-center transition-all cursor-pointer z-20 group-hover:scale-110">
+                                                <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[14px] border-l-white border-b-[8px] border-b-transparent ml-1"></div>
+                                            </div>
+                                            <img src={vid.thumb} alt={vid.title} className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-overlay group-hover:opacity-70 transition-opacity duration-500 delay-75" />
+                                        </>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Advanced Financial Chart */}
+                    <div className="bg-[#18191d] rounded-2xl p-6 shadow-2xl border border-white/5 space-y-8">
+                        <div>
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-white font-bold text-lg flex items-center gap-2"><LineChart className="w-4 h-4 text-indigo-400" /> Revenue Growth (12M)</h3>
+                                <div className="text-right">
+                                    <span className="text-indigo-400 font-mono text-sm font-bold block">Max: ₹{revChart.max}K</span>
+                                    <span className="text-slate-500 font-mono text-xs block">Min: ₹{revChart.min}K</span>
+                                </div>
+                            </div>
+                            <div className="relative h-40 w-full overflow-hidden rounded-xl border border-white/5">
+                                <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                    <defs>
+                                        <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#818cf8" stopOpacity="0.4" />
+                                            <stop offset="100%" stopColor="#818cf8" stopOpacity="0" />
+                                        </linearGradient>
+                                    </defs>
+                                    <path d={revChart.area} fill="url(#revGradient)" />
+                                    <path d={revChart.path} fill="none" stroke="#818cf8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="drop-shadow-[0_0_8px_rgba(129,140,248,0.5)]" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-white font-bold text-lg flex items-center gap-2"><TrendingUp className="w-4 h-4 text-emerald-400" /> Net Profit Margin</h3>
+                                <div className="text-right">
+                                    <span className="text-emerald-400 font-mono text-sm font-bold block">Peak: ₹{profitChart.max}K</span>
+                                </div>
+                            </div>
+                            <div className="relative h-40 w-full overflow-hidden rounded-xl border border-white/5">
+                                <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                    <defs>
+                                        <linearGradient id="profitGradient" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#34d399" stopOpacity="0.4" />
+                                            <stop offset="100%" stopColor="#34d399" stopOpacity="0" />
+                                        </linearGradient>
+                                    </defs>
+                                    <path d={profitChart.area} fill="url(#profitGradient)" />
+                                    <path d={profitChart.path} fill="none" stroke="#34d399" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
+                                    {/* Zero Line Marker if profit dips below zero */}
+                                    {profitChart.min < 0 && (
+                                        <line x1="0" y1={`${100 - ((0 - profitChart.min) / (profitChart.max - profitChart.min)) * 100}`} x2="100" y2={`${100 - ((0 - profitChart.min) / (profitChart.max - profitChart.min)) * 100}`} stroke="#475569" strokeDasharray="2 2" strokeWidth="1" />
+                                    )}
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div className="border-t border-white/10 pt-6">
+                            <h3 className="text-white font-bold text-lg mb-4">Unit Economics & ROI</h3>
+                            <div className="grid grid-cols-3 gap-4 text-center">
+                                <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                                    <p className="text-xs text-slate-400 uppercase tracking-widest mb-1">Proj. ROI</p>
+                                    <p className="text-2xl font-bold text-pink-400 font-mono">{startup.financials?.roi}%</p>
+                                </div>
+                                <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                                    <p className="text-xs text-slate-400 uppercase tracking-widest mb-1">CAC</p>
+                                    <p className="text-xl font-bold text-slate-200 font-mono">₹{startup.financials?.cac}</p>
+                                </div>
+                                <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                                    <p className="text-xs text-slate-400 uppercase tracking-widest mb-1">Est. LTV</p>
+                                    <p className="text-xl font-bold text-slate-200 font-mono">₹{startup.financials?.ltv}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Sidebar Data */}
+                <div className="space-y-6">
+                    <div className="glass-panel p-6 rounded-2xl sticky top-24">
+                        <h3 className="text-lg font-bold text-white mb-6 border-b border-white/10 pb-4 flex items-center gap-2">
+                            <TrendingUp className="w-5 h-5 text-green-400" /> Financial Ask
+                        </h3>
+
+                        <div className="space-y-4 mb-8">
+                            <div>
+                                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Target Capital</p>
+                                <p className="text-2xl font-bold font-mono text-white">₹ {(startup.requested / 100000).toFixed(1)} Lakhs</p>
+                            </div>
+                            <div className="w-full h-px bg-slate-800"></div>
+                            <div>
+                                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Equity Offered</p>
+                                <p className="text-xl font-bold text-white">{startup.equity}% Common Stock</p>
+                            </div>
+                            <div className="w-full h-px bg-slate-800"></div>
+                            <div>
+                                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Implied Valuation</p>
+                                <p className="text-lg font-mono text-slate-300">₹ {((startup.requested / startup.equity) * 100 / 10000000).toFixed(2)} Cr</p>
+                            </div>
+                        </div>
+
+                        <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-4 flex items-center gap-2">
+                            <Briefcase className="w-5 h-5 text-yellow-400" /> Current Metrics
+                        </h3>
+
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm text-slate-400">Monthly Revenue</span>
+                                <span className="font-mono text-white font-medium">₹ {(startup.revenue / 1000).toFixed(0)}K</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm text-slate-400">Burn Rate</span>
+                                <span className="font-mono text-white font-medium">₹ {(startup.burn / 1000).toFixed(0)}K</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm text-slate-400">Runway</span>
+                                <span className="font-medium text-white">~14 Months</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    );
+}
