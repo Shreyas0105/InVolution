@@ -64,7 +64,19 @@ export async function POST(req: Request) {
                 roi: Number(body.projectedROI) || 0,
                 cac: Number(body.cac) || 0,
                 ltv: Number(body.ltv) || 0
-            }
+            },
+
+            // New Domains
+            basicInfo: body.basicInfo || {},
+            businessInfo: body.businessInfo || {},
+            financialsMonthly: body.financialsMonthly || {},
+            financialsYearly: body.financialsYearly || {},
+            investmentDetails: body.investmentDetails || {},
+            growthMetrics: body.growthMetrics || {},
+            operationalMetrics: body.operationalMetrics || {},
+            credibility: body.credibility || {},
+            riskDisclosure: body.riskDisclosure || {},
+            aiReady: body.aiReady || {}
         };
 
         const newStartup = await Startup.create(newStartupData);

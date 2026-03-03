@@ -2,11 +2,11 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import KYCDocument from '@/models/KYCDocument';
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         await dbConnect();
 
-        const { id } = params;
+        const { id } = await params;
         const body = await req.json();
 
         if (!['Approved', 'Rejected'].includes(body.status)) {

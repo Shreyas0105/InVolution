@@ -2,14 +2,14 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Startup from '@/models/Startup';
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         await dbConnect();
 
         // In a real app, this route would be protected (e.g., NextAuth session check)
         // to ensure only the owner of the startup can post KPI updates.
 
-        const { id } = params;
+        const { id } = await params;
         const body = await req.json();
 
         // Find the startup first to ensure it exists

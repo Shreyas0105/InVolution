@@ -2,32 +2,52 @@
 
 import { useState } from "react";
 import { Upload, CheckCircle2, AlertCircle, Loader2, ShieldCheck, FileText } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function KYCSubmitPage() {
+    const { data: session, update } = useSession();
+    const router = useRouter();
+
     const [aadhaar, setAadhaar] = useState("");
     const [pan, setPan] = useState("");
     const [fileA, setFileA] = useState<File | null>(null);
     const [fileP, setFileP] = useState<File | null>(null);
     const [status, setStatus] = useState<"idle" | "verifying" | "success" | "error">("idle");
+    const [errorMsg, setErrorMsg] = useState("");
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setStatus("verifying");
+        setErrorMsg("");
 
-        const aadhaarValid = /^\d{12}$/.test(aadhaar.replace(/\s+/g, ''));
-        const panValid = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i.test(pan);
+        // Strip spaces and dashes so formats like "1234 5678 9012" and "1234-5678-9012" both pass
+        const cleanedAadhaar = aadhaar.replace(/[\s\-]/g, '');
+        const aadhaarValid = /^\d{12}$/.test(cleanedAadhaar);
+        const panValid = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i.test(pan.trim());
 
-        if (!aadhaarValid || !panValid || !fileA || !fileP) {
+        if (!aadhaarValid) {
+            setErrorMsg("Aadhaar must be exactly 12 digits (spaces/dashes are OK).");
+            setStatus("error");
+            return;
+        }
+        if (!panValid) {
+            setErrorMsg("PAN must be in the format: ABCDE1234F (5 letters, 4 digits, 1 letter).");
+            setStatus("error");
+            return;
+        }
+        if (!fileA || !fileP) {
+            setErrorMsg("Please upload both your Aadhaar card and PAN card documents.");
             setStatus("error");
             return;
         }
 
         try {
             const formData = new FormData();
-            formData.append("name", "Active User"); // Hardcoded until Auth replaces it
+            formData.append("name", "Active User");
             formData.append("type", "Startup Founder");
-            formData.append("aadhaar", aadhaar);
-            formData.append("pan", pan);
+            formData.append("aadhaar", cleanedAadhaar);
+            formData.append("pan", pan.trim().toUpperCase());
             formData.append("aadhaarFile", fileA);
             formData.append("panFile", fileP);
 
@@ -37,15 +57,25 @@ export default function KYCSubmitPage() {
             });
 
             if (!res.ok) {
-                throw new Error("Validation Failed on Server");
+                const data = await res.json();
+                throw new Error(data.error || "Submission failed on server");
             }
 
+            await update({ kycDone: true });
             setStatus("success");
-        } catch (error) {
+
+            setTimeout(() => {
+                const role = (session?.user as any)?.role;
+                router.push(role === 'investor' ? '/investors/dashboard' : '/startups/dashboard');
+            }, 2000);
+
+        } catch (error: any) {
             console.error("KYC POST Error:", error);
+            setErrorMsg(error.message || "Something went wrong. Please try again.");
             setStatus("error");
         }
     };
+
 
     const aadharMasked = aadhaar && aadhaar.length >= 12 ? `XXXX-XXXX-${aadhaar.slice(-4)}` : aadhaar;
 
@@ -72,12 +102,7 @@ export default function KYCSubmitPage() {
                         </div>
                         <h2 className="text-2xl font-bold text-white font-outfit mb-3">Verification Successful</h2>
                         <p className="text-slate-400 max-w-md">Your Aadhaar <b>({aadharMasked})</b> and PAN have been verified via our OCR validation simulation. Your profile is now marked as secure.</p>
-                        <button
-                            onClick={() => setStatus("idle")}
-                            className="mt-8 px-8 py-3 bg-white text-slate-950 font-semibold rounded-full hover:bg-slate-200 transition-colors"
-                        >
-                            Continue to Dashboard
-                        </button>
+                        <p className="mt-4 text-indigo-400 font-medium flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Redirecting to your dashboard...</p>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="relative z-10 space-y-8">
@@ -132,9 +157,10 @@ export default function KYCSubmitPage() {
                         {status === "error" && (
                             <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-400">
                                 <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                                <p className="text-sm">Validation failed. Please ensure Aadhaar is 12 digits and PAN is valid format.</p>
+                                <p className="text-sm">{errorMsg || "Validation failed. Please check your details and uploaded files."}</p>
                             </div>
                         )}
+
 
                         <div className="pt-4 border-t border-white/5 flex justify-end">
                             <button

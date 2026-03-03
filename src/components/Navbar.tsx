@@ -15,18 +15,30 @@ export default function Navbar() {
                 </Link>
                 <div className="hidden md:flex items-center gap-8 text-sm font-medium font-inter text-slate-300">
                     <Link href="/about" className="hover:text-white transition-colors">About</Link>
-                    <Link href="/startups" className="hover:text-white transition-colors">Startups</Link>
-                    <Link href="/investors" className="hover:text-white transition-colors">Investors</Link>
+
+                    {status === "authenticated" ? (
+                        (session?.user as any)?.role === "investor" ? (
+                            <Link href="/investors/dashboard" className="hover:text-white transition-colors">Investor Dashboard</Link>
+                        ) : (
+                            <Link href="/startups/dashboard" className="hover:text-white transition-colors">Startup Dashboard</Link>
+                        )
+                    ) : (
+                        <>
+                            <Link href="/startups" className="hover:text-white transition-colors">Startups</Link>
+                            <Link href="/investors" className="hover:text-white transition-colors">Investors</Link>
+                        </>
+                    )}
+
                     <Link href="/rules" className="hover:text-white transition-colors">Rules & FAQ</Link>
                 </div>
                 <div className="flex items-center gap-4">
                     {status === "authenticated" ? (
                         <>
                             <Link
-                                href={(session?.user as any)?.role === "startup" ? "/startups/dashboard" : "/investors/dashboard"}
+                                href={(session?.user as any)?.role === "investor" ? "/investors/dashboard" : "/startups/dashboard"}
                                 className="text-sm font-medium hover:text-indigo-400 transition-colors"
                             >
-                                Dashboard
+                                {(session?.user as any)?.role === "investor" ? "Investor Dashboard" : "Startup Dashboard"}
                             </Link>
                             <div className="flex items-center gap-3 pl-4 border-l border-white/10">
                                 <img src={session.user?.image || ""} alt="Avatar" className="w-8 h-8 rounded-full border border-white/20" />

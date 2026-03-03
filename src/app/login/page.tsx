@@ -13,7 +13,8 @@ export default function LoginPage() {
         setIsLoading(true);
         // Save the chosen role in a cookie so NextAuth can pick it up during the OAuth callback
         document.cookie = `involution_role=${role}; path=/; max-age=3600`;
-        await signIn("google", { callbackUrl: "/kyc" });
+        const dashboardRoute = role === "investor" ? "/investors/dashboard" : "/startups/dashboard";
+        await signIn("google", { callbackUrl: dashboardRoute });
     };
 
     return (

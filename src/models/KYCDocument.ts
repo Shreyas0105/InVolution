@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IKYCDocument extends Document {
+    email: string; // Used to identify the creator
     name: string;
     type: string; // "Startup Founder" | "Investor"
     aadhaar: string; // Masked or unmasked Aadhaar number
@@ -12,6 +13,7 @@ export interface IKYCDocument extends Document {
 }
 
 const KYCSchema: Schema = new Schema({
+    email: { type: String, required: true },
     name: { type: String, required: true },
     type: { type: String, required: true, default: "Startup Founder" },
     aadhaar: { type: String, required: true },

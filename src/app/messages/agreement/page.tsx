@@ -1,9 +1,10 @@
 "use client";
 
+import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Printer, ArrowLeft } from 'lucide-react';
 
-export default function PrintableAgreement() {
+function AgreementContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
 
@@ -197,5 +198,13 @@ export default function PrintableAgreement() {
 
             </div>
         </div>
+    );
+}
+
+export default function PrintableAgreement() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading Agreement...</div>}>
+            <AgreementContent />
+        </Suspense>
     );
 }

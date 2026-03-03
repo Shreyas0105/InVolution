@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FileText, MessageSquare, TrendingUp, Eye, CheckCircle2, ShieldCheck, Activity, Users, Star, BarChart3, Clock } from "lucide-react";
+import { FileText, MessageSquare, TrendingUp, Eye, CheckCircle2, ShieldCheck, Activity, Users, Star, BarChart3, Clock, LineChart } from "lucide-react";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import dbConnect from "@/lib/mongodb";
@@ -19,14 +19,12 @@ export default async function StartupDashboard() {
     const session = await getServerSession(authOptions);
     await dbConnect();
 
-    // Fetch the real Startup database document using the session's email
-    let myStartup = null;
-    let startupId = "";
+    // Fetch ALL Startup database documents using the session's email
+    let myStartups: any[] = [];
     if (session?.user?.email) {
-        const doc = await Startup.findOne({ ownerEmail: session.user.email }).lean();
-        if (doc) {
-            myStartup = doc as any;
-            startupId = doc._id.toString();
+        const docs = await Startup.find({ ownerEmail: session.user.email }).lean();
+        if (docs && docs.length > 0) {
+            myStartups = docs as any[];
         }
     }
 
@@ -38,47 +36,68 @@ export default async function StartupDashboard() {
                     <p className="text-slate-400 font-inter">Monitor your live profile performance and manage active investor negotiations.</p>
                 </div>
                 <Link href="/startups/publish" className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors flex items-center gap-2">
-                    <FileText className="w-4 h-4" /> {myStartup ? "Edit Pitch Profile" : "Create Profile"}
+                    <FileText className="w-4 h-4" /> Publish Another Profile
                 </Link>
             </div>
 
             <div className="grid lg:grid-cols-3 gap-8">
 
                 {/* Left Column: Live Profile Performance */}
-                <div className="lg:col-span-2 space-y-6">
+                <div className="lg:col-span-2 space-y-8">
+                    {/* Live Stats mapping */}
+                    {myStartups.length > 0 ? (
+                        myStartups.map((myStartup, idx) => (
+                            <div key={myStartup._id.toString()} className="space-y-6">
+                                <h2 className="text-2xl font-bold flex items-center gap-2 text-white border-b border-indigo-500/20 pb-4">
+                                    <BuildingIcon className="w-6 h-6 text-indigo-400" />
+                                    {myStartup.name}
+                                </h2>
 
-                    {/* Live Stats */}
-                    {myStartup ? (
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="glass-panel p-5 rounded-2xl border border-indigo-500/20 shadow-[0_0_15px_rgba(79,70,229,0.1)]">
-                                <div className="w-10 h-10 bg-indigo-500/20 rounded-full flex items-center justify-center mb-3">
-                                    <Eye className="w-5 h-5 text-indigo-400" />
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div className="glass-panel p-5 rounded-2xl border border-indigo-500/20 shadow-[0_0_15px_rgba(79,70,229,0.1)]">
+                                        <div className="w-10 h-10 bg-indigo-500/20 rounded-full flex items-center justify-center mb-3">
+                                            <Eye className="w-5 h-5 text-indigo-400" />
+                                        </div>
+                                        <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Profile Views</p>
+                                        <p className="text-2xl font-bold font-mono text-white">{1492 + idx * 83}</p>
+                                    </div>
+                                    <div className="glass-panel p-5 rounded-2xl">
+                                        <div className="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center mb-3">
+                                            <Activity className="w-5 h-5 text-emerald-400" />
+                                        </div>
+                                        <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Deal Room Saves</p>
+                                        <p className="text-2xl font-bold font-mono text-white">{38 + idx * 4}</p>
+                                    </div>
+                                    <div className="glass-panel p-5 rounded-2xl">
+                                        <div className="w-10 h-10 bg-amber-500/20 rounded-full flex items-center justify-center mb-3">
+                                            <Star className="w-5 h-5 text-amber-400" />
+                                        </div>
+                                        <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">AI Match Score</p>
+                                        <p className="text-2xl font-bold font-mono text-white">{myStartup.score}<span className="text-sm text-slate-500">/100</span></p>
+                                    </div>
+                                    <div className="glass-panel p-5 rounded-2xl">
+                                        <div className="w-10 h-10 bg-pink-500/20 rounded-full flex items-center justify-center mb-3">
+                                            <Users className="w-5 h-5 text-pink-400" />
+                                        </div>
+                                        <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Active Deals</p>
+                                        <p className="text-2xl font-bold font-mono text-white">{idx === 0 ? ACTIVE_DEALS.length : 0}</p>
+                                    </div>
                                 </div>
-                                <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Profile Views</p>
-                                <p className="text-2xl font-bold font-mono text-white">1,492</p>
-                            </div>
-                            <div className="glass-panel p-5 rounded-2xl">
-                                <div className="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center mb-3">
-                                    <Activity className="w-5 h-5 text-emerald-400" />
+
+                                {/* Financial Update CTA Action */}
+                                <div className="bg-gradient-to-r from-emerald-900/30 to-teal-900/30 border border-emerald-500/20 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-white flex items-center gap-2"><TrendingUp className="w-5 h-5 text-emerald-400" /> Monthly Financial Report</h3>
+                                        <p className="text-sm text-slate-400 mt-1 max-w-lg">
+                                            Keep your profile active and improve your AI Match Score by reporting your monthly revenue and burn.
+                                        </p>
+                                    </div>
+                                    <Link href={`/startups/${myStartup._id.toString()}/financial-update`} className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-colors whitespace-nowrap shadow-lg shadow-emerald-500/20 flex items-center gap-2">
+                                        <LineChart className="w-4 h-4" /> Submit Financial Update
+                                    </Link>
                                 </div>
-                                <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Deal Room Saves</p>
-                                <p className="text-2xl font-bold font-mono text-white">38</p>
                             </div>
-                            <div className="glass-panel p-5 rounded-2xl">
-                                <div className="w-10 h-10 bg-amber-500/20 rounded-full flex items-center justify-center mb-3">
-                                    <Star className="w-5 h-5 text-amber-400" />
-                                </div>
-                                <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">AI Match Score</p>
-                                <p className="text-2xl font-bold font-mono text-white">{myStartup.score}<span className="text-sm text-slate-500">/100</span></p>
-                            </div>
-                            <div className="glass-panel p-5 rounded-2xl">
-                                <div className="w-10 h-10 bg-pink-500/20 rounded-full flex items-center justify-center mb-3">
-                                    <Users className="w-5 h-5 text-pink-400" />
-                                </div>
-                                <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Active Deals</p>
-                                <p className="text-2xl font-bold font-mono text-white">{ACTIVE_DEALS.length}</p>
-                            </div>
-                        </div>
+                        ))
                     ) : (
                         <div className="glass-panel p-8 rounded-2xl text-center border-dashed border-2 border-white/20">
                             <ShieldCheck className="w-12 h-12 text-slate-500 mx-auto mb-4" />
@@ -92,8 +111,8 @@ export default async function StartupDashboard() {
 
 
                     {/* Active Deals / Inbox */}
-                    {myStartup && (
-                        <div className="glass-panel p-6 rounded-2xl">
+                    {myStartups.length > 0 && (
+                        <div className="glass-panel p-6 rounded-2xl mt-12">
                             <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2 border-b border-white/10 pb-4">
                                 <MessageSquare className="w-5 h-5 text-indigo-400" /> Active Investor Workspaces
                             </h2>
@@ -146,17 +165,17 @@ export default async function StartupDashboard() {
                 <div className="lg:col-span-1 space-y-6">
 
                     {/* Public Profile Link block */}
-                    {myStartup && (
-                        <div className="bg-gradient-to-br from-indigo-900/40 to-pink-900/40 border border-indigo-500/30 p-6 rounded-2xl relative overflow-hidden">
+                    {myStartups.map((myRes, i) => (
+                        <div key={`link-${i}`} className="bg-gradient-to-br from-indigo-900/40 to-pink-900/40 border border-indigo-500/30 p-6 rounded-2xl relative overflow-hidden">
                             <div className="absolute -top-10 -right-10 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl"></div>
                             <h3 className="text-white font-bold text-lg mb-2">Live on Network</h3>
-                            <p className="text-sm text-indigo-200/70 mb-2">Your startup is currently visible in the investor search engine.</p>
-                            <p className="text-xs text-white/50 mb-6 font-mono bg-black/30 p-2 rounded">/{myStartup.name}</p>
-                            <Link href={`/startups/${startupId}`} className="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl transition-colors backdrop-blur-sm flex items-center justify-center gap-2 border border-white/10">
+                            <p className="text-sm text-indigo-200/70 mb-2">Your startup <span className="font-bold text-white">{myRes.name}</span> is currently visible in the investor search engine.</p>
+                            <p className="text-xs text-white/50 mb-6 font-mono bg-black/30 p-2 rounded">/{myRes.name}</p>
+                            <Link href={`/startups/${myRes._id.toString()}`} className="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl transition-colors backdrop-blur-sm flex items-center justify-center gap-2 border border-white/10">
                                 <Eye className="w-4 h-4" /> View Public Profile
                             </Link>
                         </div>
-                    )}
+                    ))}
 
                     <div className="glass-panel p-6 rounded-2xl h-full">
                         <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2 border-b border-white/10 pb-4">
@@ -199,3 +218,30 @@ export default async function StartupDashboard() {
         </div>
     );
 }
+
+const BuildingIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        {...props}
+    >
+        <rect width="16" height="20" x="4" y="2" rx="2" ry="2" />
+        <path d="M9 22v-4h6v4" />
+        <path d="M8 6h.01" />
+        <path d="M16 6h.01" />
+        <path d="M12 6h.01" />
+        <path d="M12 10h.01" />
+        <path d="M12 14h.01" />
+        <path d="M16 10h.01" />
+        <path d="M16 14h.01" />
+        <path d="M8 10h.01" />
+        <path d="M8 14h.01" />
+    </svg>
+)

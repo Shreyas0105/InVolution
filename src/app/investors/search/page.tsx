@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, BrainCircuit, Activity, LineChart, ChevronRight, SlidersHorizontal, ArrowUpDown } from "lucide-react";
+import { Search, BrainCircuit, Activity, LineChart, ChevronRight, SlidersHorizontal, ArrowUpDown, ShieldCheck, Building2 } from "lucide-react";
 
 
 export default function AISearchEngine() {
@@ -19,6 +19,11 @@ export default function AISearchEngine() {
         maxCac: 1000000,
         minLtv: 0,
         minRoi: 0,
+        // New Filters
+        companyType: "All",
+        revenueModel: "All",
+        minRunway: 0,
+        excludeLegalRisk: false,
         sortBy: "ai_score"
     });
 
@@ -79,9 +84,17 @@ export default function AISearchEngine() {
                 const ltvMatch = (s.financials?.ltv || 0) >= filters.minLtv;
                 const roiMatch = (s.financials?.roi || 0) >= filters.minRoi;
 
+                // New Professional Structure Filters
+                const companyTypeMatch = filters.companyType === "All" || (s.basicInfo?.companyType === filters.companyType);
+                const revenueModelMatch = filters.revenueModel === "All" || (s.businessInfo?.revenueModel === filters.revenueModel);
+                let sRunway = s.financialsMonthly?.runway || 0;
+                if ((s.financialsMonthly?.burnRate || 0) <= 0 && s.revenue > 0) sRunway = 999;
+                const runwayMatch = filters.minRunway === 0 || sRunway >= filters.minRunway;
+                const legalMatch = !filters.excludeLegalRisk || !(s.riskDisclosure?.legalCases || s.riskDisclosure?.criminalRecord);
+
                 return keywordMatch && sectorMatch && budgetMatch && riskMatch && stageMatch &&
                     revenueMatch && businessModelMatch && equityMatch && burnMatch &&
-                    cacMatch && ltvMatch && roiMatch;
+                    cacMatch && ltvMatch && roiMatch && companyTypeMatch && revenueModelMatch && runwayMatch && legalMatch;
             });
 
             // Sorting Engine
@@ -205,6 +218,33 @@ export default function AISearchEngine() {
                             {showAdvanced && (
                                 <div className="space-y-5 pt-2 animate-in fade-in slide-in-from-top-2">
                                     <div className="space-y-2">
+                                        <label className="text-xs font-medium text-slate-400">Company Type</label>
+                                        <select
+                                            className="w-full bg-black/50 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
+                                            value={filters.companyType} onChange={(e) => setFilters({ ...filters, companyType: e.target.value })}
+                                        >
+                                            <option value="All">All Types</option>
+                                            <option value="Private Ltd">Private Ltd</option>
+                                            <option value="LLP">LLP</option>
+                                            <option value="Sole Proprietorship">Sole Proprietorship</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-slate-400">Revenue Model</label>
+                                        <select
+                                            className="w-full bg-black/50 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
+                                            value={filters.revenueModel} onChange={(e) => setFilters({ ...filters, revenueModel: e.target.value })}
+                                        >
+                                            <option value="All">All Models</option>
+                                            <option value="Subscription">Subscription</option>
+                                            <option value="One-time sales">One-time sales</option>
+                                            <option value="Commission">Commission</option>
+                                            <option value="Ads">Ads</option>
+                                            <option value="Freemium">Freemium</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="space-y-2">
                                         <label className="text-xs font-medium text-slate-400">Max Investment (₹)</label>
                                         <input type="number" step="1000000"
                                             className="w-full bg-black/50 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
@@ -233,38 +273,16 @@ export default function AISearchEngine() {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-xs font-medium text-slate-400">Max CAC (Customer Acq. Cost) (₹)</label>
-                                        <input type="number" step="1000"
+                                        <label className="text-xs font-medium text-slate-400">Min Runway (Months)</label>
+                                        <input type="number" step="1"
                                             className="w-full bg-black/50 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
-                                            value={filters.maxCac} onChange={(e) => setFilters({ ...filters, maxCac: Number(e.target.value) })}
+                                            value={filters.minRunway} onChange={(e) => setFilters({ ...filters, minRunway: Number(e.target.value) })}
                                         />
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-medium text-slate-400">Min LTV (Lifetime Value) (₹)</label>
-                                        <input type="number" step="10000"
-                                            className="w-full bg-black/50 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
-                                            value={filters.minLtv} onChange={(e) => setFilters({ ...filters, minLtv: Number(e.target.value) })}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-medium text-slate-400">Min ROI Multiplier (x)</label>
-                                        <input type="number" step="0.5" min="0"
-                                            className="w-full bg-black/50 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
-                                            value={filters.minRoi} onChange={(e) => setFilters({ ...filters, minRoi: Number(e.target.value) })}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-medium text-slate-400">Risk Profile</label>
-                                        <select
-                                            className="w-full bg-black/50 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
-                                            value={filters.riskAppetite} onChange={(e) => setFilters({ ...filters, riskAppetite: e.target.value })}
-                                        >
-                                            <option value="All">Any Risk Level</option>
-                                            <option value="Low">Low Risk (Steady)</option>
-                                            <option value="Medium">Medium Risk</option>
-                                            <option value="High">High Risk (Aggressive)</option>
-                                        </select>
-                                    </div>
+                                    <label className="flex items-center gap-2 cursor-pointer pt-2">
+                                        <input type="checkbox" className="w-4 h-4 accent-indigo-500" checked={filters.excludeLegalRisk} onChange={(e) => setFilters({ ...filters, excludeLegalRisk: e.target.checked })} />
+                                        <span className="text-xs font-medium text-slate-300">Exclude Pending Legal Risks</span>
+                                    </label>
                                 </div>
                             )}
 
@@ -344,6 +362,14 @@ export default function AISearchEngine() {
                                                 <span className={`px-2.5 py-1 rounded-md border text-xs font-medium ${startup.risk === 'Low' ? 'bg-green-500/10 border-green-500/20 text-green-400' : startup.risk === 'Medium' ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
                                                     {startup.risk} Risk
                                                 </span>
+
+                                                {/* Credibility Badges */}
+                                                {(startup.credibility?.gstRegistered || startup.credibility?.panVerified) && (
+                                                    <span className="px-2.5 py-1 bg-green-500/10 border border-green-500/20 text-green-400 rounded-md text-xs font-medium flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> Verified</span>
+                                                )}
+                                                {startup.credibility?.incubatorBacked && (
+                                                    <span className="px-2.5 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-md text-xs font-medium flex items-center gap-1"><Building2 className="w-3 h-3" /> VC Backed</span>
+                                                )}
                                             </div>
 
                                             <p className="text-slate-400 text-sm line-clamp-2">{startup.desc}</p>
@@ -369,15 +395,14 @@ export default function AISearchEngine() {
                                                 </div>
                                             </div>
 
-                                            {/* Financial Micro-metrics row */}
-                                            {(startup.financials?.ltv > 0 || startup.financials?.cac > 0) && (
-                                                <div className="flex flex-wrap gap-4 pt-2 text-xs">
-                                                    {startup.burn > 0 && <span className="text-red-400/80">Burn: <span className="font-mono">₹{(startup.burn / 1000).toFixed(0)}K/mo</span></span>}
-                                                    {startup.financials?.cac > 0 && <span className="text-slate-400">CAC: <span className="font-mono text-slate-300">₹{startup.financials.cac.toLocaleString()}</span></span>}
-                                                    {startup.financials?.ltv > 0 && <span className="text-slate-400">LTV: <span className="font-mono text-slate-300">₹{startup.financials.ltv.toLocaleString()}</span></span>}
-                                                    {startup.financials?.roi > 0 && <span className="text-emerald-400/80">Est ROI: <span className="font-mono text-emerald-400">{startup.financials.roi}x</span></span>}
-                                                </div>
-                                            )}
+                                            {/* Financial Micro-metrics row extended */}
+                                            <div className="flex flex-wrap gap-4 pt-2 text-xs">
+                                                {startup.financialsMonthly?.netMargin !== undefined && <span className={startup.financialsMonthly.netMargin >= 0 ? "text-green-400/80" : "text-red-400/80"}>Net Margin: <span className="font-mono font-bold">{startup.financialsMonthly.netMargin}%</span></span>}
+                                                {startup.financialsMonthly?.runway !== undefined && <span className="text-slate-400">Runway: <span className="font-mono text-slate-200 font-bold">{startup.financialsMonthly.runway === 999 ? "∞" : startup.financialsMonthly.runway + ' mo'}</span></span>}
+                                                {startup.burn > 0 && <span className="text-red-400/80">Burn: <span className="font-mono">₹{(startup.burn / 1000).toFixed(0)}K/mo</span></span>}
+                                                {startup.financials?.cac > 0 && <span className="text-slate-400">CAC: <span className="font-mono text-slate-200">₹{startup.financials.cac.toLocaleString()}</span></span>}
+                                                {startup.financials?.ltv > 0 && <span className="text-slate-400">LTV: <span className="font-mono text-slate-200">₹{startup.financials.ltv.toLocaleString()}</span></span>}
+                                            </div>
                                         </div>
 
                                         <div className="shrink-0 flex items-center justify-center border-t md:border-t-0 md:border-l border-slate-700/50 pt-4 md:pt-0 md:pl-6 mt-2 md:mt-0">
@@ -395,7 +420,7 @@ export default function AISearchEngine() {
                                     <h3 className="text-2xl font-bold text-slate-400">No matching deal flow found.</h3>
                                     <p className="text-slate-500 mt-2 max-w-sm mx-auto">Try widening your Advanced Financials parameters or searching across all sectors.</p>
                                     <button
-                                        onClick={() => setFilters({ ...filters, businessModel: "All", maxBurn: 100000000, maxCac: 10000000, minLtv: 0, minRoi: 0, minEquity: 0, minRevenue: 0, maxInvestment: 500000000 })}
+                                        onClick={() => setFilters({ ...filters, businessModel: "All", maxBurn: 100000000, maxCac: 10000000, minLtv: 0, minRoi: 0, minEquity: 0, minRevenue: 0, maxInvestment: 500000000, companyType: "All", revenueModel: "All", minRunway: 0, excludeLegalRisk: false })}
                                         className="mt-6 text-sm text-indigo-400 hover:text-indigo-300 underline underline-offset-4"
                                     >
                                         Reset Advanced Filters

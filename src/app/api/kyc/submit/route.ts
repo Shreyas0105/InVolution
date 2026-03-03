@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 import dbConnect from '@/lib/mongodb';
 import KYCDocument from '@/models/KYCDocument';
 
 export async function POST(req: Request) {
     try {
+        const token = await getToken({ req: req as any, secret: process.env.NEXTAUTH_SECRET || "inVolution_mock_secret_key_12345" });
+        if (!token || !token.email) {
+            return NextResponse.json({ success: false, error: 'Unauthorized. Please login.' }, { status: 401 });
+        }
+
         await dbConnect();
 
         // We use req.formData() because we are expecting raw files to be sent
@@ -28,6 +34,7 @@ export async function POST(req: Request) {
         const simulatedScore = Math.floor(Math.random() * 20) + 80;
 
         const kycRecord = await KYCDocument.create({
+            email: token.email,
             name: formData.get('name') || "Anonymous User",
             type: formData.get('type') || "Startup Founder",
             aadhaar: formData.get('aadhaar'),

@@ -18,7 +18,34 @@ export async function middleware(request: NextRequest) {
 
     if (token) {
         const role = token.role as string;
+        const kycDone = token.kycDone as boolean;
+        const isNewUser = token.isNewUser as boolean;
         const path = request.nextUrl.pathname;
+
+        // Never restrict access to auth endpoints, or the active kyc submission page
+        if (isAuthPage) {
+            // Only redirect to KYC if this is a brand-new sign-in with no KYC record
+            if (isNewUser && !kycDone) {
+                return NextResponse.redirect(new URL('/kyc', request.url));
+            } else {
+                return NextResponse.redirect(new URL(role === 'startup' ? '/startups/dashboard' : '/investors/dashboard', request.url));
+            }
+        }
+
+        if (path === '/kyc') {
+            if (kycDone) {
+                return NextResponse.redirect(new URL(role === 'startup' ? '/startups/dashboard' : '/investors/dashboard', request.url));
+            }
+            // It's not done, so allow access to '/kyc'
+            return NextResponse.next();
+        }
+
+        // Force KYC only for brand-new users who haven't completed it yet
+        if (isNewUser && !kycDone && isProtectedRoute) {
+            return NextResponse.redirect(new URL('/kyc', request.url));
+        }
+
+        // --- Standard Auth Routing checks onwards ---
 
         // Prevent cross-access based on roles
         if (role === 'startup' && path.startsWith('/investors')) {
@@ -32,13 +59,6 @@ export async function middleware(request: NextRequest) {
         // Prevent investors from publishing pitches
         if (role === 'investor' && path.startsWith('/startups/publish')) {
             return NextResponse.redirect(new URL('/investors/dashboard', request.url));
-        }
-
-        if (isAuthPage) {
-            // Default routing from login/auth pages
-            if (role === 'startup') return NextResponse.redirect(new URL('/startups/dashboard', request.url));
-            if (role === 'investor') return NextResponse.redirect(new URL('/investors/dashboard', request.url));
-            return NextResponse.redirect(new URL('/kyc', request.url));
         }
     }
 
