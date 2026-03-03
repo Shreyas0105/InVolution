@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 import dbConnect from '@/lib/mongodb';
 import Startup from '@/models/Startup';
 
 export async function POST(req: Request) {
     try {
+        const token = await getToken({ req: req as any, secret: process.env.NEXTAUTH_SECRET || "inVolution_mock_secret_key_12345" });
+        if (!token || !token.email) {
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+        }
+
         await dbConnect();
 
         const body = await req.json();
@@ -33,6 +39,7 @@ export async function POST(req: Request) {
         // Map the incoming form data to our deep Mongoose sub-documents
         const newStartupData = {
             name: body.name,
+            ownerEmail: token.email,
             sector: body.sector,
             businessModel: body.businessModel,
             desc: body.description,

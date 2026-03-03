@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, BrainCircuit, Activity, LineChart, ChevronRight } from "lucide-react";
-
+import { Search, BrainCircuit, Activity, LineChart, ChevronRight, SlidersHorizontal, ArrowUpDown } from "lucide-react";
 
 
 export default function AISearchEngine() {
@@ -13,13 +12,21 @@ export default function AISearchEngine() {
         maxInvestment: 50000000,
         riskAppetite: "All",
         stage: "All",
-        minRevenue: 0
+        minRevenue: 0,
+        businessModel: "All",
+        minEquity: 0,
+        maxBurn: 10000000,
+        maxCac: 1000000,
+        minLtv: 0,
+        minRoi: 0,
+        sortBy: "ai_score"
     });
 
     const [isSearching, setIsSearching] = useState(false);
     const [allStartups, setAllStartups] = useState<any[]>([]);
     const [results, setResults] = useState<any[]>([]);
     const [isLoadingData, setIsLoadingData] = useState(true);
+    const [showAdvanced, setShowAdvanced] = useState(false);
 
     // Fetch verified startups from MongoDB
     useEffect(() => {
@@ -29,7 +36,10 @@ export default function AISearchEngine() {
                 const json = await res.json();
                 if (json.success) {
                     setAllStartups(json.data);
-                    setResults(json.data); // Initial display shows all
+
+                    // Initial sort by ai_score
+                    const sorted = [...json.data].sort((a, b) => b.score - a.score);
+                    setResults(sorted);
                 }
             } catch (err) {
                 console.error("Failed to load DB startups", err);
@@ -43,24 +53,59 @@ export default function AISearchEngine() {
     const handleSearch = () => {
         setIsSearching(true);
         setTimeout(() => {
-            const filtered = allStartups.filter(s => {
+            let filtered = allStartups.filter(s => {
+                // Basic Filters
                 const searchStr = filters.keyword.toLowerCase();
                 const keywordMatch = !searchStr ||
                     s.name.toLowerCase().includes(searchStr) ||
                     s.sector.toLowerCase().includes(searchStr) ||
                     (s.desc && s.desc.toLowerCase().includes(searchStr)) ||
+                    (s.businessModel && s.businessModel.toLowerCase().includes(searchStr)) ||
                     (s.tags && s.tags.some((t: string) => t.toLowerCase().includes(searchStr)));
 
                 const sectorMatch = filters.sector === "All" || s.sector === filters.sector;
                 const budgetMatch = s.requested <= filters.maxInvestment;
                 const riskMatch = filters.riskAppetite === "All" || s.risk === filters.riskAppetite;
-                const stageMatch = filters.stage === "All" || (s.stage && s.stage === filters.stage) || true; // Currently DB doesn't have stage, failing open. Provide fallback until DB supports stage.
+                const stageMatch = filters.stage === "All" || (s.stage && s.stage === filters.stage) || true; // fail open for older docs
                 const revenueMatch = s.revenue >= filters.minRevenue;
-                return keywordMatch && sectorMatch && budgetMatch && riskMatch && stageMatch && revenueMatch;
-            }).sort((a, b) => b.score - a.score); // AI sorts by highest match score
+
+                // Advanced Filters
+                const businessModelMatch = filters.businessModel === "All" || s.businessModel === filters.businessModel;
+                const equityMatch = s.equity >= filters.minEquity;
+                const burnMatch = s.burn <= filters.maxBurn;
+
+                // Deep Financial Filters
+                const cacMatch = (s.financials?.cac || 0) <= filters.maxCac;
+                const ltvMatch = (s.financials?.ltv || 0) >= filters.minLtv;
+                const roiMatch = (s.financials?.roi || 0) >= filters.minRoi;
+
+                return keywordMatch && sectorMatch && budgetMatch && riskMatch && stageMatch &&
+                    revenueMatch && businessModelMatch && equityMatch && burnMatch &&
+                    cacMatch && ltvMatch && roiMatch;
+            });
+
+            // Sorting Engine
+            filtered.sort((a, b) => {
+                switch (filters.sortBy) {
+                    case 'revenue_desc':
+                        return b.revenue - a.revenue;
+                    case 'ask_asc':
+                        return a.requested - b.requested;
+                    case 'equity_desc':
+                        return b.equity - a.equity;
+                    case 'valuation_asc':
+                        const valA = a.requested / (a.equity / 100);
+                        const valB = b.requested / (b.equity / 100);
+                        return valA - valB;
+                    case 'ai_score':
+                    default:
+                        return b.score - a.score;
+                }
+            });
+
             setResults(filtered);
             setIsSearching(false);
-        }, 1200);
+        }, 800);
     };
 
     return (
@@ -71,7 +116,7 @@ export default function AISearchEngine() {
                 </div>
                 <h1 className="text-4xl md:text-5xl font-outfit font-bold text-white mb-4">Discover Your Next Unicorn</h1>
                 <p className="text-slate-400 font-inter max-w-2xl mx-auto text-lg">
-                    Our intelligent algorithm analyzes financials, sectors, and risk bands to find the perfect investment match for your portfolio.
+                    Dive deep into advanced financials, SaaS metrics, and risk profiles to pinpoint the perfect investment opportunity.
                 </p>
             </div>
 
@@ -79,17 +124,19 @@ export default function AISearchEngine() {
 
                 {/* Filters Sidebar */}
                 <div className="lg:col-span-1 space-y-6">
-                    <div className="glass-panel p-6 rounded-2xl sticky top-24">
-                        <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2"><Search className="w-5 h-5" /> Parameters</h2>
+                    <div className="glass-panel p-6 rounded-2xl sticky top-24 max-h-[85vh] overflow-y-auto custom-scrollbar">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-bold text-white flex items-center gap-2"><Search className="w-5 h-5" /> Search</h2>
+                        </div>
 
                         <div className="space-y-5">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-300">Specific Interests / Keywords</label>
+                                <label className="text-sm font-medium text-slate-300">Keywords</label>
                                 <div className="relative">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                                     <input type="text"
-                                        placeholder="e.g. AI, B2B, solar..."
-                                        className="w-full bg-black/50 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200 placeholder-slate-600"
+                                        placeholder="AI, B2B, solar..."
+                                        className="w-full bg-black/50 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200 placeholder-slate-600"
                                         value={filters.keyword} onChange={(e) => setFilters({ ...filters, keyword: e.target.value })}
                                     />
                                 </div>
@@ -98,7 +145,7 @@ export default function AISearchEngine() {
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-slate-300">Industry Sector</label>
                                 <select
-                                    className="w-full bg-black/50 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
+                                    className="w-full bg-black/50 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
                                     value={filters.sector} onChange={(e) => setFilters({ ...filters, sector: e.target.value })}
                                 >
                                     <option value="All">All Sectors</option>
@@ -107,57 +154,126 @@ export default function AISearchEngine() {
                                     <option value="CleanTech">CleanTech</option>
                                     <option value="EdTech">EdTech</option>
                                     <option value="SaaS">SaaS</option>
-                                </select>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-300">Max Investment (₹)</label>
-                                <input type="number" step="1000000"
-                                    className="w-full bg-black/50 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
-                                    value={filters.maxInvestment} onChange={(e) => setFilters({ ...filters, maxInvestment: Number(e.target.value) })}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-300">Risk Appetite</label>
-                                <select
-                                    className="w-full bg-black/50 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
-                                    value={filters.riskAppetite} onChange={(e) => setFilters({ ...filters, riskAppetite: e.target.value })}
-                                >
-                                    <option value="All">Any Risk Level</option>
-                                    <option value="Low">Low Risk</option>
-                                    <option value="Medium">Medium Risk</option>
-                                    <option value="High">Aggressive / High</option>
+                                    <option value="DeepTech">DeepTech</option>
+                                    <option value="D2C">D2C</option>
                                 </select>
                             </div>
 
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-slate-300">Startup Stage</label>
                                 <select
-                                    className="w-full bg-black/50 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
+                                    className="w-full bg-black/50 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
                                     value={filters.stage} onChange={(e) => setFilters({ ...filters, stage: e.target.value })}
                                 >
                                     <option value="All">All Stages</option>
+                                    <option value="Idea">Idea Stage</option>
                                     <option value="Pre-Seed">Pre-Seed</option>
                                     <option value="Seed">Seed</option>
                                     <option value="Series A">Series A</option>
+                                    <option value="Series B+">Series B+</option>
                                 </select>
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-300">Min. Monthly Rev (₹)</label>
-                                <input type="number" step="50000"
-                                    className="w-full bg-black/50 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
-                                    value={filters.minRevenue} onChange={(e) => setFilters({ ...filters, minRevenue: Number(e.target.value) })}
-                                />
+                                <label className="text-sm font-medium text-slate-300">Business Model</label>
+                                <select
+                                    className="w-full bg-black/50 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
+                                    value={filters.businessModel} onChange={(e) => setFilters({ ...filters, businessModel: e.target.value })}
+                                >
+                                    <option value="All">Any Model</option>
+                                    <option value="B2B SaaS">B2B SaaS</option>
+                                    <option value="B2C">B2C</option>
+                                    <option value="B2B2C">B2B2C</option>
+                                    <option value="Marketplace">Marketplace</option>
+                                    <option value="Hardware / IoT">Hardware / IoT</option>
+                                    <option value="Subscription">Subscription</option>
+                                </select>
                             </div>
+
+                            {/* Divider for Advanced Options Toggle */}
+                            <div className="pt-4 border-t border-slate-700/50">
+                                <button
+                                    onClick={() => setShowAdvanced(!showAdvanced)}
+                                    className="flex items-center justify-between w-full text-sm font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
+                                >
+                                    <span className="flex items-center gap-2"><SlidersHorizontal className="w-4 h-4" /> Advanced Financials</span>
+                                    <ChevronRight className={`w-4 h-4 transform transition-transform ${showAdvanced ? 'rotate-90' : ''}`} />
+                                </button>
+                            </div>
+
+                            {/* Advanced Financials */}
+                            {showAdvanced && (
+                                <div className="space-y-5 pt-2 animate-in fade-in slide-in-from-top-2">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-slate-400">Max Investment (₹)</label>
+                                        <input type="number" step="1000000"
+                                            className="w-full bg-black/50 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
+                                            value={filters.maxInvestment} onChange={(e) => setFilters({ ...filters, maxInvestment: Number(e.target.value) })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-slate-400">Min. Monthly Revenue (₹)</label>
+                                        <input type="number" step="50000"
+                                            className="w-full bg-black/50 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
+                                            value={filters.minRevenue} onChange={(e) => setFilters({ ...filters, minRevenue: Number(e.target.value) })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-slate-400">Min. Equity Offered (%)</label>
+                                        <input type="number" step="1" max="100" min="0"
+                                            className="w-full bg-black/50 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
+                                            value={filters.minEquity} onChange={(e) => setFilters({ ...filters, minEquity: Number(e.target.value) })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-slate-400">Max Monthly Burn (₹)</label>
+                                        <input type="number" step="50000"
+                                            className="w-full bg-black/50 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
+                                            value={filters.maxBurn} onChange={(e) => setFilters({ ...filters, maxBurn: Number(e.target.value) })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-slate-400">Max CAC (Customer Acq. Cost) (₹)</label>
+                                        <input type="number" step="1000"
+                                            className="w-full bg-black/50 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
+                                            value={filters.maxCac} onChange={(e) => setFilters({ ...filters, maxCac: Number(e.target.value) })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-slate-400">Min LTV (Lifetime Value) (₹)</label>
+                                        <input type="number" step="10000"
+                                            className="w-full bg-black/50 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
+                                            value={filters.minLtv} onChange={(e) => setFilters({ ...filters, minLtv: Number(e.target.value) })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-slate-400">Min ROI Multiplier (x)</label>
+                                        <input type="number" step="0.5" min="0"
+                                            className="w-full bg-black/50 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
+                                            value={filters.minRoi} onChange={(e) => setFilters({ ...filters, minRoi: Number(e.target.value) })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-slate-400">Risk Profile</label>
+                                        <select
+                                            className="w-full bg-black/50 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
+                                            value={filters.riskAppetite} onChange={(e) => setFilters({ ...filters, riskAppetite: e.target.value })}
+                                        >
+                                            <option value="All">Any Risk Level</option>
+                                            <option value="Low">Low Risk (Steady)</option>
+                                            <option value="Medium">Medium Risk</option>
+                                            <option value="High">High Risk (Aggressive)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            )}
 
                             <button
                                 onClick={handleSearch}
-                                className="w-full py-3 mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2"
+                                className="w-full py-3 mt-6 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2"
                             >
                                 {isSearching ? <BrainCircuit className="w-5 h-5 animate-pulse" /> : <Search className="w-5 h-5" />}
-                                {isSearching ? "Analyzing..." : "Run AI Search"}
+                                {isSearching ? "Processing Data..." : "Apply Filters"}
                             </button>
                         </div>
                     </div>
@@ -165,76 +281,125 @@ export default function AISearchEngine() {
 
                 {/* Results Grid */}
                 <div className="lg:col-span-3">
-                    <div className="mb-6 flex items-center justify-between border-b border-white/10 pb-4">
-                        <h3 className="text-lg font-semibold text-slate-200">
-                            {results.length} Matches Found
+                    <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+                        <h3 className="text-xl font-semibold text-slate-200">
+                            {results.length} Validated Opportunities
                         </h3>
-                        <span className="text-sm text-slate-500 flex items-center gap-1"><Activity className="w-4 h-4" /> Sorted by AI Score</span>
+
+                        {/* Sorting Dropdown */}
+                        <div className="flex items-center gap-2">
+                            <ArrowUpDown className="w-4 h-4 text-slate-400" />
+                            <select
+                                className="bg-black/40 border border-slate-700 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-300"
+                                value={filters.sortBy}
+                                onChange={(e) => {
+                                    setFilters({ ...filters, sortBy: e.target.value });
+                                    // Trigger instant sort
+                                    setTimeout(handleSearch, 0);
+                                }}
+                            >
+                                <option value="ai_score">Sort by AI Match Score</option>
+                                <option value="revenue_desc">Highest Monthly Revenue</option>
+                                <option value="ask_asc">Lowest Asking Amount</option>
+                                <option value="equity_desc">Highest Equity Offered</option>
+                                <option value="valuation_asc">Lowest Implied Valuation</option>
+                            </select>
+                        </div>
                     </div>
 
                     {isLoadingData ? (
                         <div className="py-24 text-center">
                             <Activity className="w-16 h-16 text-indigo-500 animate-spin mx-auto mb-4" />
-                            <h3 className="text-2xl font-bold text-slate-300">Synchronizing with Live Database...</h3>
-                            <p className="text-slate-500">Fetching verified unicorn profiles securely.</p>
+                            <h3 className="text-2xl font-bold text-slate-300">Synchronizing with Deal Flow Database...</h3>
+                            <p className="text-slate-500">Evaluating multi-metric profiles and financials.</p>
                         </div>
                     ) : (
                         <div className="grid gap-6">
-                            {results.map((startup, idx) => (
-                                <div key={startup._id || startup.id}
-                                    className="glass-panel p-6 rounded-2xl flex flex-col md:flex-row items-center gap-6 group hover:border-indigo-500/50 transition-all duration-300 cursor-pointer animate-in fade-in slide-in-from-bottom-4"
-                                    style={{ animationDelay: `${idx * 100}ms` }}
-                                >
-                                    {/* Score Circular badge */}
-                                    <div className="relative w-20 h-20 shrink-0">
-                                        <svg className="w-full h-full transform -rotate-90">
-                                            <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-slate-800" />
-                                            <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray="226" strokeDashoffset={226 - (226 * startup.score) / 100} className="text-indigo-500 transition-all duration-1000" />
-                                        </svg>
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                            <span className="text-xl font-bold text-white">{startup.score}</span>
-                                            <span className="text-[10px] text-indigo-300 font-bold uppercase tracking-wider">Match</span>
-                                        </div>
-                                    </div>
+                            {results.map((startup, idx) => {
+                                const impliedValuation = startup.requested / (startup.equity / 100);
 
-                                    <div className="flex-grow space-y-2 text-center md:text-left mt-4 md:mt-0">
-                                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-                                            <h3 className="text-2xl font-bold text-white font-outfit group-hover:text-indigo-400 transition-colors">{startup.name}</h3>
-                                            <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-medium text-slate-300">{startup.sector}</span>
-                                            <span className="px-3 py-1 bg-indigo-500/20 text-indigo-300 rounded-full text-xs font-medium">{startup.stage}</span>
-                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${startup.risk === 'Low' ? 'bg-green-500/20 text-green-400' : startup.risk === 'Medium' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'}`}>
-                                                {startup.risk} Risk
-                                            </span>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-4 pt-4 text-sm">
-                                            <div>
-                                                <p className="text-slate-500 mb-1">Asking</p>
-                                                <p className="text-slate-200 font-semibold text-base font-mono">₹{(startup.requested / 100000).toFixed(1)}L</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-slate-500 mb-1">Equity</p>
-                                                <p className="text-slate-200 font-semibold text-base">{startup.equity}%</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-slate-500 flex items-center gap-1 mb-1"><LineChart className="w-3 h-3" /> MRR</p>
-                                                <p className="text-slate-200 font-semibold text-base font-mono">₹{(startup.revenue / 1000).toFixed(0)}K</p>
+                                return (
+                                    <div key={startup._id || startup.id}
+                                        className="glass-panel p-6 rounded-2xl flex flex-col md:flex-row gap-6 group hover:border-indigo-500/50 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4"
+                                        style={{ animationDelay: `${idx * 100}ms` }}
+                                    >
+                                        {/* Score Circular badge */}
+                                        <div className="relative w-20 h-20 shrink-0 self-center md:self-start">
+                                            <svg className="w-full h-full transform -rotate-90">
+                                                <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-slate-800" />
+                                                <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray="226" strokeDashoffset={226 - (226 * startup.score) / 100} className="text-indigo-500 transition-all duration-1000" />
+                                            </svg>
+                                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                                <span className="text-xl font-bold text-white">{startup.score}</span>
+                                                <span className="text-[10px] text-indigo-300 font-bold uppercase tracking-wider">Match</span>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <div className="shrink-0 mt-6 md:mt-0">
-                                        <Link href={`/startups/${startup._id}`} className="flex items-center justify-center w-12 h-12 rounded-full bg-slate-800 text-white group-hover:bg-indigo-600 transition-colors">
-                                            <ChevronRight className="w-6 h-6" />
-                                        </Link>
+                                        <div className="flex-grow space-y-3 text-center md:text-left">
+                                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
+                                                <h3 className="text-2xl font-bold text-white font-outfit group-hover:text-indigo-400 transition-colors">{startup.name}</h3>
+                                                <span className="px-2.5 py-1 bg-white/10 rounded-md text-xs font-medium text-slate-300">{startup.sector}</span>
+                                                {startup.businessModel && <span className="px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-300 rounded-md text-xs font-medium">{startup.businessModel}</span>}
+                                                <span className="px-2.5 py-1 bg-indigo-500/20 text-indigo-300 rounded-md text-xs font-medium">{startup.stage || "Seed"}</span>
+                                                <span className={`px-2.5 py-1 rounded-md border text-xs font-medium ${startup.risk === 'Low' ? 'bg-green-500/10 border-green-500/20 text-green-400' : startup.risk === 'Medium' ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
+                                                    {startup.risk} Risk
+                                                </span>
+                                            </div>
+
+                                            <p className="text-slate-400 text-sm line-clamp-2">{startup.desc}</p>
+
+                                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-slate-700/50 mt-4">
+                                                <div>
+                                                    <p className="text-slate-500 text-xs mb-1">Asking Size</p>
+                                                    <p className="text-slate-200 font-semibold text-sm font-mono">₹{(startup.requested / 100000).toFixed(1)}L</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-slate-500 text-xs mb-1">Equity Offered</p>
+                                                    <p className="text-indigo-300 font-semibold text-sm">{startup.equity}%</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-slate-500 text-xs mb-1">Implied Valuation</p>
+                                                    <p className="text-slate-200 font-semibold text-sm font-mono">₹{(impliedValuation / 10000000).toFixed(2)}Cr</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-slate-500 text-xs flex items-center gap-1 mb-1 justify-center md:justify-start">
+                                                        <LineChart className="w-3 h-3 text-green-400" /> MRR
+                                                    </p>
+                                                    <p className="text-green-400 font-semibold text-sm font-mono whitespace-nowrap">₹{(startup.revenue / 100000).toFixed(2)}L</p>
+                                                </div>
+                                            </div>
+
+                                            {/* Financial Micro-metrics row */}
+                                            {(startup.financials?.ltv > 0 || startup.financials?.cac > 0) && (
+                                                <div className="flex flex-wrap gap-4 pt-2 text-xs">
+                                                    {startup.burn > 0 && <span className="text-red-400/80">Burn: <span className="font-mono">₹{(startup.burn / 1000).toFixed(0)}K/mo</span></span>}
+                                                    {startup.financials?.cac > 0 && <span className="text-slate-400">CAC: <span className="font-mono text-slate-300">₹{startup.financials.cac.toLocaleString()}</span></span>}
+                                                    {startup.financials?.ltv > 0 && <span className="text-slate-400">LTV: <span className="font-mono text-slate-300">₹{startup.financials.ltv.toLocaleString()}</span></span>}
+                                                    {startup.financials?.roi > 0 && <span className="text-emerald-400/80">Est ROI: <span className="font-mono text-emerald-400">{startup.financials.roi}x</span></span>}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="shrink-0 flex items-center justify-center border-t md:border-t-0 md:border-l border-slate-700/50 pt-4 md:pt-0 md:pl-6 mt-2 md:mt-0">
+                                            <Link href={`/startups/${startup._id}`} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-800 text-white hover:bg-indigo-600 transition-colors shadow-none hover:shadow-lg hover:shadow-indigo-500/20 font-medium text-sm w-full md:w-auto justify-center">
+                                                View Deal <ChevronRight className="w-4 h-4" />
+                                            </Link>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                )
+                            })}
 
                             {results.length === 0 && (
-                                <div className="py-24 text-center">
+                                <div className="py-24 text-center bg-black/20 rounded-2xl border border-dashed border-slate-700">
                                     <BrainCircuit className="w-16 h-16 text-slate-700 mx-auto mb-4" />
-                                    <h3 className="text-2xl font-bold text-slate-400">No matching startups found.</h3>
-                                    <p className="text-slate-500">Try adjusting your AI parameters.</p>
+                                    <h3 className="text-2xl font-bold text-slate-400">No matching deal flow found.</h3>
+                                    <p className="text-slate-500 mt-2 max-w-sm mx-auto">Try widening your Advanced Financials parameters or searching across all sectors.</p>
+                                    <button
+                                        onClick={() => setFilters({ ...filters, businessModel: "All", maxBurn: 100000000, maxCac: 10000000, minLtv: 0, minRoi: 0, minEquity: 0, minRevenue: 0, maxInvestment: 500000000 })}
+                                        className="mt-6 text-sm text-indigo-400 hover:text-indigo-300 underline underline-offset-4"
+                                    >
+                                        Reset Advanced Filters
+                                    </button>
                                 </div>
                             )}
                         </div>

@@ -12,6 +12,7 @@ export default function StartupProfile() {
     const idValue = Array.isArray(params.id) ? params.id[0] : params.id;
     const [startup, setStartup] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [playingVideoIdx, setPlayingVideoIdx] = useState<number | null>(null);
 
     useEffect(() => {
         const fetchStartup = async () => {
@@ -127,25 +128,36 @@ export default function StartupProfile() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
                             {startup.videos?.map((vid: any, idx: number) => (
                                 <div key={idx} className="aspect-video bg-black/50 border border-slate-700 rounded-xl flex items-center justify-center relative overflow-hidden group shadow-lg">
-                                    {vid.url ? (
+                                    {(playingVideoIdx === idx && vid.url) ? (
                                         <iframe
-                                            src={vid.url}
+                                            src={`${vid.url}${vid.url.includes('?') ? '&' : '?'}autoplay=1`}
                                             title={vid.title}
                                             className="absolute inset-0 w-full h-full object-cover"
                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                             allowFullScreen
                                         ></iframe>
                                     ) : (
-                                        <>
+                                        <div
+                                            className="absolute inset-0 cursor-pointer"
+                                            onClick={() => {
+                                                if (vid.url) {
+                                                    setPlayingVideoIdx(idx);
+                                                } else {
+                                                    alert("No video URL is currently provided for this pitch.");
+                                                }
+                                            }}
+                                        >
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-4 z-10 transition-opacity">
                                                 <h3 className="text-white font-bold text-sm leading-tight">{vid.title}</h3>
                                                 {idx === 0 && <p className="text-slate-300 text-[10px] mt-1">Exclusive Verified Pitch</p>}
                                             </div>
-                                            <div className="w-12 h-12 rounded-full bg-white/10 group-hover:bg-white/20 backdrop-blur-md flex items-center justify-center transition-all cursor-pointer z-20 group-hover:scale-110">
-                                                <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[14px] border-l-white border-b-[8px] border-b-transparent ml-1"></div>
+                                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                                                <div className="w-12 h-12 rounded-full bg-white/10 group-hover:bg-white/20 backdrop-blur-md flex items-center justify-center transition-all group-hover:scale-110">
+                                                    <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[14px] border-l-white border-b-[8px] border-b-transparent ml-1"></div>
+                                                </div>
                                             </div>
-                                            <img src={vid.thumb} alt={vid.title} className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-overlay group-hover:opacity-70 transition-opacity duration-500 delay-75" />
-                                        </>
+                                            <img src={vid.thumb} alt={vid.title} className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-overlay group-hover:opacity-70 transition-opacity duration-500 delay-75 pointer-events-none" />
+                                        </div>
                                     )}
                                 </div>
                             ))}

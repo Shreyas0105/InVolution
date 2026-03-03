@@ -17,7 +17,9 @@ export interface IFinancials {
 
 export interface IStartup extends Document {
     name: string;
+    ownerEmail: string;
     sector: string;
+    stage: string;
     businessModel: string;
     requested: number;
     equity: number;
@@ -47,7 +49,9 @@ const FinancialsSchema: Schema = new Schema({
 
 const StartupSchema: Schema = new Schema({
     name: { type: String, required: true },
+    ownerEmail: { type: String, required: true },
     sector: { type: String, required: true },
+    stage: { type: String, enum: ['Idea', 'Pre-Seed', 'Seed', 'Series A', 'Series B+'], default: 'Seed' },
     businessModel: { type: String, default: "B2B SaaS" },
     requested: { type: Number, required: true },
     equity: { type: Number, required: true },

@@ -22,6 +22,17 @@ const DealSchema = new mongoose.Schema({
     startupSignature: { type: String, default: null },
     investorSignature: { type: String, default: null },
 
+    // Deal Lifecycle
+    currentPhase: { type: Number, default: 1 }, // 1: Identity, 2: Pitch, 3: Meetings, 4: Diligence, 5: Agreement
+    meetings: [{
+        title: { type: String, required: true },
+        date: { type: String, required: true },
+        time: { type: String, required: true },
+        durationMinutes: { type: Number, default: 10 },
+        meetLink: { type: String, required: true },
+        status: { type: String, enum: ['scheduled', 'completed', 'cancelled'], default: 'scheduled' }
+    }],
+
     // Chat History
     messages: [{
         senderId: { type: String, required: true },

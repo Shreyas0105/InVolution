@@ -7,12 +7,13 @@ import { ArrowLeft, ShieldCheck, Mail } from "lucide-react";
 
 export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
+    const [role, setRole] = useState("investor");
 
     const handleGoogleLogin = async () => {
         setIsLoading(true);
-        // The mock credentials provider doesn't actually need username/password, just triggering it signs us in.
-        // It's acting as our localized "Google OAuth" intercept for the prototype.
-        await signIn("credentials", { callbackUrl: "/kyc" });
+        // Save the chosen role in a cookie so NextAuth can pick it up during the OAuth callback
+        document.cookie = `involution_role=${role}; path=/; max-age=3600`;
+        await signIn("google", { callbackUrl: "/kyc" });
     };
 
     return (
@@ -34,9 +35,24 @@ export default function LoginPage() {
                     </div>
 
                     <h1 className="text-3xl font-outfit font-bold text-white mb-2">Welcome Back</h1>
-                    <p className="text-slate-400 text-sm mb-10 px-4">
-                        Securely authenticate to access the InVolution Deal Room and personalized Startup matches.
+                    <p className="text-slate-400 text-sm mb-6 px-4">
+                        Securely authenticate to access the InVolution Deal Room and personalized matches.
                     </p>
+
+                    <div className="flex bg-slate-900/50 p-1 rounded-xl border border-slate-700 mb-8 mx-auto w-fit">
+                        <button
+                            onClick={() => setRole("investor")}
+                            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${role === "investor" ? "bg-indigo-600 text-white shadow-lg" : "text-slate-400 hover:text-white"}`}
+                        >
+                            Investor
+                        </button>
+                        <button
+                            onClick={() => setRole("startup")}
+                            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${role === "startup" ? "bg-pink-600 text-white shadow-lg" : "text-slate-400 hover:text-white"}`}
+                        >
+                            Startup Founder
+                        </button>
+                    </div>
 
                     <div className="space-y-4">
                         <button

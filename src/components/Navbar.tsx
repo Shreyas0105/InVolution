@@ -22,7 +22,10 @@ export default function Navbar() {
                 <div className="flex items-center gap-4">
                     {status === "authenticated" ? (
                         <>
-                            <Link href="/investors/dashboard" className="text-sm font-medium hover:text-indigo-400 transition-colors">
+                            <Link
+                                href={(session?.user as any)?.role === "startup" ? "/startups/dashboard" : "/investors/dashboard"}
+                                className="text-sm font-medium hover:text-indigo-400 transition-colors"
+                            >
                                 Dashboard
                             </Link>
                             <div className="flex items-center gap-3 pl-4 border-l border-white/10">
