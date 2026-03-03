@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, MessageSquare, Briefcase, TrendingUp, Presentation, CheckCircle2, Factory, LineChart, AlertTriangle, Activity } from "lucide-react";
+import { ArrowLeft, MessageSquare, Briefcase, TrendingUp, Presentation, CheckCircle2, Factory, LineChart, AlertTriangle, Activity, BrainCircuit, ShieldCheck, Scale, HeartPulse } from "lucide-react";
 
 // Remove mock data. We will fetch dynamically now.
 
@@ -261,7 +261,7 @@ export default function StartupProfile() {
                             <Briefcase className="w-5 h-5 text-yellow-400" /> Current Metrics
                         </h3>
 
-                        <div className="space-y-4">
+                        <div className="space-y-4 mb-8">
                             <div className="flex justify-between items-center">
                                 <span className="text-sm text-slate-400">Monthly Revenue</span>
                                 <span className="font-mono text-white font-medium">₹ {(startup.revenue / 1000).toFixed(0)}K</span>
@@ -274,6 +274,45 @@ export default function StartupProfile() {
                                 <span className="text-sm text-slate-400">Runway</span>
                                 <span className="font-medium text-white">~14 Months</span>
                             </div>
+                        </div>
+
+                        {/* AI Intelligence Suite */}
+                        <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-4 flex items-center gap-2">
+                            <BrainCircuit className="w-5 h-5 text-indigo-400" /> AI Intelligence Suite
+                        </h3>
+                        <div className="space-y-2">
+                            <Link href={`/startups/${idValue}/due-diligence`}
+                                className="flex items-center gap-3 p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 hover:bg-indigo-500/20 transition-colors group">
+                                <BrainCircuit className="w-4 h-4 text-indigo-400 shrink-0" />
+                                <div>
+                                    <p className="text-sm font-semibold text-white">AI Due Diligence</p>
+                                    <p className="text-[10px] text-slate-500">Full financial + risk analysis</p>
+                                </div>
+                            </Link>
+                            <Link href={`/startups/${idValue}/health`}
+                                className="flex items-center gap-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors group">
+                                <HeartPulse className="w-4 h-4 text-emerald-400 shrink-0" />
+                                <div>
+                                    <p className="text-sm font-semibold text-white">Health Monitor</p>
+                                    <p className="text-[10px] text-slate-500">Live operational vitals</p>
+                                </div>
+                            </Link>
+                            <Link href={`/startups/${idValue}/trust`}
+                                className="flex items-center gap-3 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 transition-colors group">
+                                <ShieldCheck className="w-4 h-4 text-blue-400 shrink-0" />
+                                <div>
+                                    <p className="text-sm font-semibold text-white">Trust Score</p>
+                                    <p className="text-[10px] text-slate-500">Verified reputation rating</p>
+                                </div>
+                            </Link>
+                            <Link href={`/startups/${idValue}/compliance`}
+                                className="flex items-center gap-3 p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20 transition-colors group">
+                                <Scale className="w-4 h-4 text-purple-400 shrink-0" />
+                                <div>
+                                    <p className="text-sm font-semibold text-white">Legal Compliance</p>
+                                    <p className="text-[10px] text-slate-500">Regulatory status check</p>
+                                </div>
+                            </Link>
                         </div>
                     </div>
                 </div>
