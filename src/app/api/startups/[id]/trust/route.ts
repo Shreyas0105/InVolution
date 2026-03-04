@@ -1,90 +1,105 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Startup from '@/models/Startup';
+import { GoogleGenAI, Type, Schema } from '@google/genai';
 
-function computeTrustScore(startup: any) {
-    const s = startup;
-    const factors: { label: string; earned: number; max: number; verified: boolean; detail: string }[] = [];
+// Initialize the Google Gen AI client
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-    // Identity Verification (30 pts)
-    let identityScore = 0;
-    if (s.credibility?.panVerified) { identityScore += 10; }
-    if (s.credibility?.aadhaarVerified) { identityScore += 10; }
-    if (s.credibility?.gstRegistered) { identityScore += 10; }
-    factors.push({ label: 'Identity & Tax Verification', earned: identityScore, max: 30, verified: identityScore >= 20, detail: 'PAN, Aadhaar & GST Registered' });
-
-    // Financial Transparency (25 pts)
-    let finTransScore = 0;
-    if (s.credibility?.bankVerified) finTransScore += 10;
-    if (s.credibility?.bankStatementUrl) finTransScore += 5;
-    if (s.credibility?.caCertificateUrl) finTransScore += 5;
-    if (s.credibility?.gstSummaryUrl) finTransScore += 5;
-    factors.push({ label: 'Financial Transparency', earned: finTransScore, max: 25, verified: finTransScore >= 15, detail: 'Bank verification & document submission' });
-
-    // External Backing (20 pts)
-    let backingScore = 0;
-    if (s.credibility?.incubatorBacked) backingScore += 15;
-    if (s.investmentDetails?.previousFunding) backingScore += 5;
-    factors.push({ label: 'External Backing & Funding', earned: backingScore, max: 20, verified: backingScore >= 10, detail: 'Incubator, VC or angel backing' });
-
-    // Risk Disclosure (15 pts)
-    let disclosureScore = 15;
-    if (s.riskDisclosure?.legalCases) disclosureScore -= 8;
-    if (s.riskDisclosure?.criminalRecord) disclosureScore -= 10;
-    if (s.riskDisclosure?.outstandingLoans) disclosureScore -= 4;
-    disclosureScore = Math.max(0, disclosureScore);
-    factors.push({ label: 'Risk Disclosure Integrity', earned: disclosureScore, max: 15, verified: disclosureScore >= 12, detail: 'Legal, criminal & loan disclosures' });
-
-    // Profile Completeness (10 pts)
-    let completeness = 0;
-    if (s.basicInfo?.founderNames) completeness += 2;
-    if (s.basicInfo?.location) completeness += 1;
-    if (s.businessInfo?.uvp) completeness += 2;
-    if (s.businessInfo?.competitors) completeness += 1;
-    if (s.financialsMonthly?.netProfit !== undefined) completeness += 2;
-    if (s.growthMetrics?.mau > 0) completeness += 2;
-    factors.push({ label: 'Profile Completeness', earned: Math.min(completeness, 10), max: 10, verified: completeness >= 8, detail: 'Business info, financials and team data filled' });
-
-    const totalTrust = Math.min(100, factors.reduce((acc, f) => acc + f.earned, 0));
-
-    const trustLabel =
-        totalTrust >= 80 ? 'Highly Trusted' :
-            totalTrust >= 65 ? 'Trusted' :
-                totalTrust >= 50 ? 'Partially Verified' :
-                    totalTrust >= 35 ? 'Limited Trust' : 'Unverified';
-
-    const trustColor =
-        totalTrust >= 80 ? 'emerald' :
-            totalTrust >= 65 ? 'blue' :
-                totalTrust >= 50 ? 'yellow' :
-                    totalTrust >= 35 ? 'orange' : 'red';
-
-    const tier =
-        totalTrust >= 80 ? 'Platinum' :
-            totalTrust >= 65 ? 'Gold' :
-                totalTrust >= 50 ? 'Silver' : 'Bronze';
-
-    return {
-        totalTrust,
-        trustLabel,
-        trustColor,
-        tier,
-        factors,
-        verifiedCount: factors.filter(f => f.verified).length,
-        totalFactors: factors.length,
-        generatedAt: new Date().toISOString(),
-    };
-}
+const trustSchema: Schema = {
+    type: Type.OBJECT,
+    properties: {
+        totalTrust: { type: Type.INTEGER, description: "A score from 0-100 indicating overall trust and reputation" },
+        trustLabel: { type: Type.STRING, description: "One of: Highly Trusted, Trusted, Partially Verified, Limited Trust, Unverified" },
+        trustColor: { type: Type.STRING, description: "Color mapping: emerald, blue, yellow, orange, red" },
+        tier: { type: Type.STRING, description: "One of: Platinum, Gold, Silver, Bronze" },
+        factors: {
+            type: Type.ARRAY,
+            description: "Exactly 5 factors evaluating trust",
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    label: { type: Type.STRING, description: "Factor Label (e.g. Identity & Tax Verification)" },
+                    earned: { type: Type.INTEGER, description: "Score earned for this factor" },
+                    max: { type: Type.INTEGER, description: "Max score possible for this factor" },
+                    verified: { type: Type.BOOLEAN, description: "Whether this factor meets the minimum verified threshold" },
+                    detail: { type: Type.STRING, description: "Short summary of what was verified or missing" }
+                },
+                required: ["label", "earned", "max", "verified", "detail"]
+            }
+        },
+        verifiedCount: { type: Type.INTEGER, description: "Number of factors where verified is true" },
+        totalFactors: { type: Type.INTEGER, description: "Total number of factors (should be 5)" }
+    },
+    required: ["totalTrust", "trustLabel", "trustColor", "tier", "factors", "verifiedCount", "totalFactors"]
+};
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         await dbConnect();
         const { id } = await params;
         const startup = await Startup.findById(id).lean();
-        if (!startup) return NextResponse.json({ success: false, error: 'Startup not found' }, { status: 404 });
-        const report = computeTrustScore(startup);
-        return NextResponse.json({ success: true, startup: { name: (startup as any).name, sector: (startup as any).sector }, report });
+
+        if (!startup) {
+            return NextResponse.json({ success: false, error: 'Startup not found' }, { status: 404 });
+        }
+
+        const startupDataString = JSON.stringify(startup, null, 2);
+
+        const prompt = `
+            You are an expert AI trust and reputation analyst.
+            Evaluate the credibility, verification status, and disclosure integrity of the following startup to generate a trust score.
+            
+            Evaluate the startup across exactly 5 trust factors:
+            1. Identity & Tax Verification (max: 30 pts)
+            2. Financial Transparency (max: 25 pts)
+            3. External Backing & Funding (max: 20 pts)
+            4. Risk Disclosure Integrity (max: 15 pts) - Penalize for legal cases, criminal records, or undisclosed loans.
+            5. Profile Completeness (max: 10 pts)
+
+            For each factor, assess pts \`earned\`, the \`max\` possible, whether it meets the \`verified\` threshold (usually >= 60-70% of max), and provide a short \`detail\` string summarizing what was found.
+
+            Calculate \`totalTrust\` by summing the earned points (max 100).
+            Determine the \`trustLabel\`, \`trustColor\`, and \`tier\`:
+            - 'Highly Trusted' (emerald) / Platinum for 80+
+            - 'Trusted' (blue) / Gold for 65-79
+            - 'Partially Verified' (yellow) / Silver for 50-64
+            - 'Limited Trust' (orange) / Bronze for 35-49
+            - 'Unverified' (red) / Bronze for < 35
+
+            Also calculate \`verifiedCount\` (number of fully verified factors) and \`totalFactors\` (5).
+
+            Startup Data:
+            ${startupDataString}
+        `;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                responseMimeType: 'application/json',
+                responseSchema: trustSchema,
+                temperature: 0.2, // Low temperature for more deterministic/factual analysis
+            }
+        });
+
+        if (!response.text) {
+            throw new Error("Failed to generate report from Gemini");
+        }
+
+        const reportData = JSON.parse(response.text);
+        reportData.generatedAt = new Date().toISOString();
+
+        return NextResponse.json({
+            success: true,
+            startup: {
+                name: (startup as any).name,
+                sector: (startup as any).sector
+            },
+            report: reportData
+        });
     } catch (err: any) {
+        console.error("Gemini Error:", err);
         return NextResponse.json({ success: false, error: err.message }, { status: 500 });
     }
 }

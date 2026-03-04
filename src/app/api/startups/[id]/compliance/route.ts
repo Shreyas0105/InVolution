@@ -1,173 +1,113 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Startup from '@/models/Startup';
+import { GoogleGenAI, Type, Schema } from '@google/genai';
 
-function computeComplianceReport(startup: any) {
-    const s = startup;
+// Initialize the Google Gen AI client
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-    interface ComplianceItem {
-        id: string;
-        category: string;
-        requirement: string;
-        status: 'compliant' | 'non-compliant' | 'partial' | 'not-applicable';
-        detail: string;
-        priority: 'critical' | 'high' | 'medium' | 'low';
-    }
-
-    const items: ComplianceItem[] = [
-        // Tax & Registration
-        {
-            id: 'gst',
-            category: 'Tax Compliance',
-            requirement: 'GST Registration',
-            status: s.credibility?.gstRegistered ? 'compliant' : 'non-compliant',
-            detail: s.credibility?.gstRegistered
-                ? 'Business is GST registered and compliant.'
-                : 'GST registration required for businesses with turnover > ₹40L.',
-            priority: 'critical',
-        },
-        {
-            id: 'pan',
-            category: 'Tax Compliance',
-            requirement: 'PAN Verification',
-            status: s.credibility?.panVerified ? 'compliant' : 'non-compliant',
-            detail: s.credibility?.panVerified
-                ? 'Permanent Account Number verified.'
-                : 'PAN must be verified for tax filing and investment compliance.',
-            priority: 'critical',
-        },
-        {
-            id: 'aadhaar',
-            category: 'KYC Compliance',
-            requirement: 'Aadhaar Verification',
-            status: s.credibility?.aadhaarVerified ? 'compliant' : 'non-compliant',
-            detail: s.credibility?.aadhaarVerified
-                ? 'Founder Aadhaar verified via KYC process.'
-                : 'Aadhaar verification required under PMLA and RBI KYC norms.',
-            priority: 'high',
-        },
-        {
-            id: 'bank',
-            category: 'Financial Compliance',
-            requirement: 'Bank Account Verification',
-            status: s.credibility?.bankVerified ? 'compliant' : 'non-compliant',
-            detail: s.credibility?.bankVerified
-                ? 'Business bank account is verified.'
-                : 'Verified business bank account required for investment disbursement.',
-            priority: 'high',
-        },
-        // Legal Disclosures
-        {
-            id: 'legal_cases',
-            category: 'Legal Disclosure',
-            requirement: 'No Pending Litigation',
-            status: s.riskDisclosure?.legalCases ? 'non-compliant' : 'compliant',
-            detail: s.riskDisclosure?.legalCases
-                ? 'Active legal cases disclosed. Investor must review before commitment.'
-                : 'No pending legal disputes disclosed.',
-            priority: 'critical',
-        },
-        {
-            id: 'criminal',
-            category: 'Legal Disclosure',
-            requirement: 'No Criminal Record',
-            status: s.riskDisclosure?.criminalRecord ? 'non-compliant' : 'compliant',
-            detail: s.riskDisclosure?.criminalRecord
-                ? 'Criminal record disclosed. Requires mandatory investor review under SEBI ICDR norms.'
-                : 'No criminal record disclosed by founders.',
-            priority: 'critical',
-        },
-        // Financial Transparency
-        {
-            id: 'bank_stmt',
-            category: 'Financial Transparency',
-            requirement: 'Bank Statement Submission',
-            status: s.credibility?.bankStatementUrl ? 'compliant' : 'partial',
-            detail: s.credibility?.bankStatementUrl
-                ? 'Bank statement uploaded and on file.'
-                : 'Bank statement not submitted. Required for investor due diligence.',
-            priority: 'medium',
-        },
-        {
-            id: 'ca_cert',
-            category: 'Financial Transparency',
-            requirement: 'CA Certified Financials',
-            status: s.credibility?.caCertificateUrl ? 'compliant' : 'partial',
-            detail: s.credibility?.caCertificateUrl
-                ? 'CA certificate on file.'
-                : 'CA-certified financials not uploaded. Strongly recommended for Series A+.',
-            priority: 'medium',
-        },
-        // Business Registration
-        {
-            id: 'company_type',
-            category: 'Corporate Governance',
-            requirement: 'Entity Registration',
-            status: s.basicInfo?.companyType && s.basicInfo.companyType !== '' ? 'compliant' : 'partial',
-            detail: s.basicInfo?.companyType
-                ? `Registered as ${s.basicInfo.companyType}.`
-                : 'Company type not specified.',
-            priority: 'medium',
-        },
-        // Disclosure Completeness
-        {
-            id: 'risk_disc',
-            category: 'Risk Disclosure',
-            requirement: 'Revenue Fluctuation Explanation',
-            status: s.riskDisclosure?.revenueFluctuationExplanation ? 'compliant' : 'partial',
-            detail: s.riskDisclosure?.revenueFluctuationExplanation
-                ? 'Revenue fluctuation adequately explained.'
-                : 'No explanation provided for revenue fluctuations.',
-            priority: 'low',
-        },
-    ];
-
-    const compliantCount = items.filter(i => i.status === 'compliant').length;
-    const criticalIssues = items.filter(i => i.status === 'non-compliant' && i.priority === 'critical');
-    const highIssues = items.filter(i => i.status === 'non-compliant' && i.priority === 'high');
-
-    const complianceScore = Math.round((compliantCount / items.length) * 100);
-
-    const complianceLabel =
-        complianceScore >= 90 ? 'Fully Compliant' :
-            complianceScore >= 70 ? 'Mostly Compliant' :
-                complianceScore >= 50 ? 'Partial Compliance' : 'Non-Compliant';
-
-    const complianceColor =
-        complianceScore >= 90 ? 'emerald' :
-            complianceScore >= 70 ? 'blue' :
-                complianceScore >= 50 ? 'yellow' : 'red';
-
-    const categories = [...new Set(items.map(i => i.category))];
-
-    return {
-        complianceScore,
-        complianceLabel,
-        complianceColor,
-        compliantCount,
-        totalItems: items.length,
-        criticalIssuesCount: criticalIssues.length,
-        highIssuesCount: highIssues.length,
-        items,
-        categories,
-        investorNote: criticalIssues.length > 0
-            ? `⚠️ ${criticalIssues.length} critical compliance issue(s) require resolution before investment can proceed.`
-            : highIssues.length > 0
-                ? `${highIssues.length} high-priority compliance item(s) should be resolved soon.`
-                : 'Startup meets minimum compliance requirements for investment.',
-        generatedAt: new Date().toISOString(),
-    };
-}
+const complianceSchema: Schema = {
+    type: Type.OBJECT,
+    properties: {
+        complianceScore: { type: Type.INTEGER, description: "A score from 0-100 indicating overall compliance" },
+        complianceLabel: { type: Type.STRING, description: "One of: Fully Compliant, Mostly Compliant, Partial Compliance, Non-Compliant" },
+        complianceColor: { type: Type.STRING, description: "Color mapping: emerald, blue, yellow, red" },
+        compliantCount: { type: Type.INTEGER, description: "Number of fully compliant items" },
+        totalItems: { type: Type.INTEGER, description: "Total number of compliance items evaluated" },
+        criticalIssuesCount: { type: Type.INTEGER, description: "Number of non-compliant items with critical priority" },
+        highIssuesCount: { type: Type.INTEGER, description: "Number of non-compliant items with high priority" },
+        categories: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Unique list of categories evaluated" },
+        investorNote: { type: Type.STRING, description: "A short summary note for the investor regarding compliance status" },
+        items: {
+            type: Type.ARRAY,
+            description: "List of compliance items evaluated",
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    id: { type: Type.STRING, description: "Unique ID for the item" },
+                    category: { type: Type.STRING, description: "Category (e.g. Tax Compliance, Legal Disclosure)" },
+                    requirement: { type: Type.STRING, description: "The specific requirement (e.g. GST Registration)" },
+                    status: { type: Type.STRING, description: "One of: compliant, non-compliant, partial, not-applicable" },
+                    detail: { type: Type.STRING, description: "Explanation of the status" },
+                    priority: { type: Type.STRING, description: "One of: critical, high, medium, low" }
+                },
+                required: ["id", "category", "requirement", "status", "detail", "priority"]
+            }
+        }
+    },
+    required: ["complianceScore", "complianceLabel", "complianceColor", "compliantCount", "totalItems", "criticalIssuesCount", "highIssuesCount", "categories", "investorNote", "items"]
+};
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         await dbConnect();
         const { id } = await params;
         const startup = await Startup.findById(id).lean();
-        if (!startup) return NextResponse.json({ success: false, error: 'Startup not found' }, { status: 404 });
-        const report = computeComplianceReport(startup);
-        return NextResponse.json({ success: true, startup: { name: (startup as any).name, sector: (startup as any).sector }, report });
+
+        if (!startup) {
+            return NextResponse.json({ success: false, error: 'Startup not found' }, { status: 404 });
+        }
+
+        const startupDataString = JSON.stringify(startup, null, 2);
+
+        const prompt = `
+            You are an expert legal and corporate compliance AI agent.
+            Evaluate the compliance standing of the following startup based on tax, KYC, legal disclosures, and financial transparency.
+            
+            Evaluate at least the following standard compliance items:
+            1. GST Registration (critical)
+            2. PAN Verification (critical)
+            3. Aadhaar Verification (high)
+            4. Bank Account Verification (high)
+            5. No Pending Litigation (critical) - Check riskDisclosure.legalCases
+            6. No Criminal Record (critical) - Check riskDisclosure.criminalRecord
+            7. Bank Statement Submission (medium)
+            8. CA Certified Financials (medium)
+            9. Entity Registration / Company Type (medium)
+
+            For each item, determine the \`status\` (compliant, non-compliant, partial, not-applicable) and provide a \`detail\` explaining why.
+            
+            Calculate \`complianceScore\` (0-100) based on the percentage of compliant items.
+            Determine \`complianceLabel\` and \`complianceColor\`:
+            - 'Fully Compliant' (emerald) for 90+
+            - 'Mostly Compliant' (blue) for 70-89
+            - 'Partial Compliance' (yellow) for 50-69
+            - 'Non-Compliant' (red) for < 50
+
+            Calculate \`compliantCount\`, \`totalItems\`, \`criticalIssuesCount\`, and \`highIssuesCount\`.
+            Provide an \`investorNote\` summarizing the biggest risks or giving an all-clear. Ensure it includes an alert emoji if there are critical issues.
+
+            Startup Data:
+            ${startupDataString}
+        `;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                responseMimeType: 'application/json',
+                responseSchema: complianceSchema,
+                temperature: 0.2, // Low temperature for more deterministic/factual analysis
+            }
+        });
+
+        if (!response.text) {
+            throw new Error("Failed to generate report from Gemini");
+        }
+
+        const reportData = JSON.parse(response.text);
+        reportData.generatedAt = new Date().toISOString();
+
+        return NextResponse.json({
+            success: true,
+            startup: {
+                name: (startup as any).name,
+                sector: (startup as any).sector
+            },
+            report: reportData
+        });
     } catch (err: any) {
+        console.error("Gemini Error:", err);
         return NextResponse.json({ success: false, error: err.message }, { status: 500 });
     }
 }

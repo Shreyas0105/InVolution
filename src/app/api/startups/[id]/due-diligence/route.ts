@@ -1,165 +1,126 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Startup from '@/models/Startup';
+import { GoogleGenAI, Type, Schema } from '@google/genai';
 
-function computeDueDiligenceReport(startup: any) {
-    const s = startup;
+// Initialize the Google Gen AI client
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-    // ── Financial Health (30 pts) ──────────────────────────────────────────────
-    let financialScore = 0;
-    const financialFlags: string[] = [];
-    const financialStrengths: string[] = [];
-
-    const runway = s.financialsMonthly?.runway ?? 0;
-    const netMargin = s.financialsMonthly?.netMargin ?? 0;
-    const grossMargin = s.financialsMonthly?.grossMargin ?? 0;
-    const burn = s.burn ?? 0;
-    const revenue = s.revenue ?? 0;
-
-    if (revenue > 0) { financialScore += 5; financialStrengths.push('Revenue generating'); }
-    if (runway >= 12) { financialScore += 8; financialStrengths.push(`Strong runway (${runway} months)`); }
-    else if (runway >= 6) { financialScore += 4; financialFlags.push(`Moderate runway (${runway} months)`); }
-    else { financialFlags.push('Critical: runway < 6 months'); }
-
-    if (netMargin >= 10) { financialScore += 7; financialStrengths.push(`Positive net margin (${netMargin}%)`); }
-    else if (netMargin >= 0) { financialScore += 3; }
-    else { financialFlags.push(`Negative net margin (${netMargin}%)`); }
-
-    if (grossMargin >= 40) { financialScore += 5; financialStrengths.push(`Healthy gross margins (${grossMargin}%)`); }
-    else if (grossMargin > 0) { financialScore += 2; }
-
-    const burnRevRatio = revenue > 0 ? burn / revenue : 999;
-    if (burnRevRatio < 0.5) { financialScore += 5; financialStrengths.push('Efficient burn-to-revenue ratio'); }
-    else if (burnRevRatio > 2) { financialFlags.push('High burn relative to revenue'); }
-
-    // ── Growth Metrics (20 pts) ──────────────────────────────────────────────
-    let growthScore = 0;
-    const growthFlags: string[] = [];
-    const growthStrengths: string[] = [];
-
-    const mau = s.growthMetrics?.mau ?? 0;
-    const churn = s.growthMetrics?.churnRate ?? 99;
-    const conversion = s.growthMetrics?.conversionRate ?? 0;
-    const growthRate = s.aiReady?.growthRate ?? 0;
-
-    if (mau >= 10000) { growthScore += 6; growthStrengths.push(`Large active user base (${mau.toLocaleString()} MAU)`); }
-    else if (mau >= 1000) { growthScore += 3; }
-    else if (mau > 0) { growthScore += 1; }
-
-    if (churn < 5) { growthScore += 5; growthStrengths.push(`Low churn rate (${churn}%)`); }
-    else if (churn < 10) { growthScore += 2; }
-    else if (churn < 99) { growthFlags.push(`High churn rate (${churn}%)`); }
-
-    if (conversion >= 3) { growthScore += 4; growthStrengths.push(`Strong conversion rate (${conversion}%)`); }
-    else if (conversion > 0) { growthScore += 1; }
-
-    if (growthRate >= 20) { growthScore += 5; growthStrengths.push(`High MoM growth (${growthRate}%)`); }
-    else if (growthRate > 0) { growthScore += 2; }
-
-    // ── Team & Credibility (25 pts) ──────────────────────────────────────────────
-    let credibilityScore = 0;
-    const credFlags: string[] = [];
-    const credStrengths: string[] = [];
-
-    if (s.credibility?.gstRegistered) { credibilityScore += 5; credStrengths.push('GST Registered'); }
-    else { credFlags.push('Not GST registered'); }
-    if (s.credibility?.panVerified) { credibilityScore += 5; credStrengths.push('PAN Verified'); }
-    if (s.credibility?.bankVerified) { credibilityScore += 5; credStrengths.push('Bank Account Verified'); }
-    else { credFlags.push('Bank not verified'); }
-    if (s.credibility?.aadhaarVerified) { credibilityScore += 4; credStrengths.push('Aadhaar Verified'); }
-    if (s.credibility?.incubatorBacked) { credibilityScore += 6; credStrengths.push('Incubator / VC Backed'); }
-
-    const teamSize = s.basicInfo?.teamSize ?? 0;
-    if (teamSize >= 5) { credibilityScore += 4; credStrengths.push(`Established team (${teamSize} members)`); }
-    else if (teamSize > 0) { credibilityScore += 1; }
-
-    // Clamp to 25
-    credibilityScore = Math.min(credibilityScore, 25);
-
-    // ── Risk & Legal (25 pts) ──────────────────────────────────────────────
-    let riskScore = 25; // start full, deduct for flags
-    const riskFlags: string[] = [];
-    const riskStrengths: string[] = [];
-
-    if (s.riskDisclosure?.legalCases) { riskScore -= 8; riskFlags.push('Pending legal cases disclosed'); }
-    else { riskStrengths.push('No pending legal cases'); }
-    if (s.riskDisclosure?.criminalRecord) { riskScore -= 10; riskFlags.push('Criminal record disclosed'); }
-    if (s.riskDisclosure?.outstandingLoans) { riskScore -= 5; riskFlags.push('Outstanding loans on record'); }
-    else { riskStrengths.push('No outstanding debt risk'); }
-
-    riskScore = Math.max(0, riskScore);
-
-    const totalScore = Math.min(100, financialScore + growthScore + credibilityScore + riskScore);
-
-    const verdict =
-        totalScore >= 80 ? { label: 'Strong Buy', color: 'emerald' } :
-            totalScore >= 65 ? { label: 'Accumulate', color: 'blue' } :
-                totalScore >= 50 ? { label: 'Hold / Monitor', color: 'yellow' } :
-                    { label: 'High Risk', color: 'red' };
-
-    return {
-        totalScore,
-        verdict,
-        sections: [
-            {
-                id: 'financial',
-                label: 'Financial Health',
-                score: financialScore,
-                maxScore: 30,
-                strengths: financialStrengths,
-                flags: financialFlags,
+const dueDiligenceSchema: Schema = {
+    type: Type.OBJECT,
+    properties: {
+        totalScore: { type: Type.INTEGER, description: "Score out of 100 based on all 4 sections" },
+        verdict: {
+            type: Type.OBJECT,
+            properties: {
+                label: { type: Type.STRING, description: "Verdict label: Strong Buy, Accumulate, Hold / Monitor, High Risk" },
+                color: { type: Type.STRING, description: "Color associated with verdict: emerald, blue, yellow, red" }
             },
-            {
-                id: 'growth',
-                label: 'Growth Metrics',
-                score: growthScore,
-                maxScore: 20,
-                strengths: growthStrengths,
-                flags: growthFlags,
-            },
-            {
-                id: 'credibility',
-                label: 'Team & Credibility',
-                score: credibilityScore,
-                maxScore: 25,
-                strengths: credStrengths,
-                flags: credFlags,
-            },
-            {
-                id: 'risk',
-                label: 'Risk & Legal',
-                score: riskScore,
-                maxScore: 25,
-                strengths: riskStrengths,
-                flags: riskFlags,
-            },
-        ],
-        keyMetrics: {
-            revenue: s.revenue ?? 0,
-            burn: s.burn ?? 0,
-            runway: runway,
-            netMargin: netMargin,
-            grossMargin: grossMargin,
-            mau: mau,
-            churnRate: churn < 99 ? churn : null,
-            growthRate: growthRate,
-            teamSize: teamSize,
-            equity: s.equity,
-            valuation: s.equity > 0 ? s.requested / (s.equity / 100) : 0,
+            required: ["label", "color"]
         },
-        generatedAt: new Date().toISOString(),
-    };
-}
+        sections: {
+            type: Type.ARRAY,
+            description: "Exactly 4 sections: Financial Health, Growth Metrics, Team & Credibility, Risk & Legal",
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    id: { type: Type.STRING, description: "Section ID: 'financial', 'growth', 'credibility', 'risk'" },
+                    label: { type: Type.STRING, description: "Section Label" },
+                    score: { type: Type.INTEGER, description: "Section score" },
+                    maxScore: { type: Type.INTEGER, description: "Max score for this section" },
+                    strengths: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of strengths for this section" },
+                    flags: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of red flags or concerns for this section" }
+                },
+                required: ["id", "label", "score", "maxScore", "strengths", "flags"]
+            }
+        },
+        keyMetrics: {
+            type: Type.OBJECT,
+            properties: {
+                revenue: { type: Type.NUMBER },
+                burn: { type: Type.NUMBER },
+                runway: { type: Type.NUMBER },
+                netMargin: { type: Type.NUMBER },
+                grossMargin: { type: Type.NUMBER },
+                mau: { type: Type.NUMBER },
+                churnRate: { type: Type.NUMBER, nullable: true },
+                growthRate: { type: Type.NUMBER },
+                teamSize: { type: Type.INTEGER },
+                equity: { type: Type.NUMBER },
+                valuation: { type: Type.NUMBER }
+            },
+            required: ["revenue", "burn", "runway", "netMargin", "grossMargin", "mau", "growthRate", "teamSize", "equity", "valuation"]
+        }
+    },
+    required: ["totalScore", "verdict", "sections", "keyMetrics"]
+};
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         await dbConnect();
         const { id } = await params;
         const startup = await Startup.findById(id).lean();
-        if (!startup) return NextResponse.json({ success: false, error: 'Startup not found' }, { status: 404 });
-        const report = computeDueDiligenceReport(startup);
-        return NextResponse.json({ success: true, startup: { name: (startup as any).name, sector: (startup as any).sector, stage: (startup as any).stage }, report });
+
+        if (!startup) {
+            return NextResponse.json({ success: false, error: 'Startup not found' }, { status: 404 });
+        }
+
+        const startupDataString = JSON.stringify(startup, null, 2);
+
+        const prompt = `
+            You are an expert venture capital analyst and AI due diligence engine.
+            Analyze the following startup data and generate a comprehensive due diligence report.
+            
+            Evaluate the startup across 4 mandatory sections:
+            1. Financial Health (id: 'financial', maxScore: 30)
+            2. Growth Metrics (id: 'growth', maxScore: 20)
+            3. Team & Credibility (id: 'credibility', maxScore: 25)
+            4. Risk & Legal (id: 'risk', maxScore: 25)
+
+            Assign points to each section based on the startup's data. Identify key strengths and flags for each section.
+            Calculate the \`totalScore\` by summing the section scores (max 100).
+            Determine the \`verdict\`:
+            - 'Strong Buy' (emerald) for 80+
+            - 'Accumulate' (blue) for 65-79
+            - 'Hold / Monitor' (yellow) for 50-64
+            - 'High Risk' (red) for < 50
+
+            Extract the key metrics from the data to populate the \`keyMetrics\` object. If valuation isn't explicitly provided, calculate it as (requested_funding / (equity_offered / 100)).
+            
+            Startup Data:
+            ${startupDataString}
+        `;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                responseMimeType: 'application/json',
+                responseSchema: dueDiligenceSchema,
+                temperature: 0.2, // Low temperature for more deterministic/factual analysis
+            }
+        });
+
+        if (!response.text) {
+            throw new Error("Failed to generate report from Gemini");
+        }
+
+        const reportData = JSON.parse(response.text);
+
+        // Ensure generatedAt is attached
+        reportData.generatedAt = new Date().toISOString();
+
+        return NextResponse.json({
+            success: true,
+            startup: {
+                name: (startup as any).name,
+                sector: (startup as any).sector,
+                stage: (startup as any).stage
+            },
+            report: reportData
+        });
     } catch (err: any) {
+        console.error("Gemini Error:", err);
         return NextResponse.json({ success: false, error: err.message }, { status: 500 });
     }
 }
