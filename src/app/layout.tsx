@@ -18,9 +18,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <body
-        className={`${inter.variable} ${outfit.variable} font-sans bg-slate-950 text-slate-50 antialiased min-h-screen flex flex-col`}
+        className={`${inter.variable} ${outfit.variable} font-sans bg-[#f8faf9] text-slate-900 antialiased min-h-screen flex flex-col`}
       >
         <Providers>
           <Navbar />

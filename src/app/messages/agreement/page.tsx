@@ -35,16 +35,16 @@ function AgreementContent() {
     return (
         <div className="min-h-screen bg-slate-100 text-black font-serif pb-12">
             {/* Non-printable action bar */}
-            <div className="print:hidden bg-slate-900 text-white p-4 flex justify-between items-center shadow-lg sticky top-0 z-50">
+            <div className="print:hidden bg-slate-50 text-slate-900 p-4 flex justify-between items-center shadow-lg sticky top-0 z-50">
                 <button
                     onClick={() => router.back()}
-                    className="flex items-center gap-2 px-4 py-2 hover:bg-slate-800 rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 rounded-lg transition-colors"
                 >
                     <ArrowLeft className="w-5 h-5" /> Back to Deal Room
                 </button>
                 <button
                     onClick={handlePrint}
-                    className="flex items-center gap-2 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-slate-900 font-semibold rounded-lg transition-colors"
                 >
                     <Printer className="w-4 h-4" /> Print / Save as PDF
                 </button>

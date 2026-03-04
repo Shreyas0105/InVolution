@@ -124,11 +124,11 @@ export default function AISearchEngine() {
     return (
         <div className="container mx-auto px-6 py-12 max-w-7xl min-h-screen">
             <div className="text-center mb-12 animate-fade-in-up">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-indigo-500/20 to-pink-500/20 text-indigo-300 text-sm font-semibold mb-6 border border-indigo-500/30">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 text-emerald-600 text-sm font-semibold mb-6 border border-emerald-300">
                     <BrainCircuit className="w-4 h-4" /> AI-Powered Matchmaking Active
                 </div>
-                <h1 className="text-4xl md:text-5xl font-outfit font-bold text-white mb-4">Discover Your Next Unicorn</h1>
-                <p className="text-slate-400 font-inter max-w-2xl mx-auto text-lg">
+                <h1 className="text-4xl md:text-5xl font-outfit font-bold text-slate-900 mb-4">Discover Your Next Unicorn</h1>
+                <p className="text-slate-500 font-inter max-w-2xl mx-auto text-lg">
                     Dive deep into advanced financials, SaaS metrics, and risk profiles to pinpoint the perfect investment opportunity.
                 </p>
             </div>
@@ -137,28 +137,28 @@ export default function AISearchEngine() {
 
                 {/* Filters Sidebar */}
                 <div className="lg:col-span-1 space-y-6">
-                    <div className="glass-panel p-6 rounded-2xl sticky top-24 max-h-[85vh] overflow-y-auto custom-scrollbar">
+                    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 rounded-2xl sticky top-24 max-h-[85vh] overflow-y-auto custom-scrollbar border border-slate-200">
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-bold text-white flex items-center gap-2"><Search className="w-5 h-5" /> Search</h2>
+                            <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2"><Search className="w-5 h-5 text-emerald-600" /> Search</h2>
                         </div>
 
                         <div className="space-y-5">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-300">Keywords</label>
+                                <label className="text-sm font-medium text-slate-500">Keywords</label>
                                 <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-9000" />
                                     <input type="text"
                                         placeholder="AI, B2B, solar..."
-                                        className="w-full bg-black/50 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200 placeholder-slate-600"
+                                        className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-lime-500 text-slate-700 placeholder-zinc-600"
                                         value={filters.keyword} onChange={(e) => setFilters({ ...filters, keyword: e.target.value })}
                                     />
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-300">Industry Sector</label>
+                                <label className="text-sm font-medium text-slate-500">Industry Sector</label>
                                 <select
-                                    className="w-full bg-black/50 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
+                                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-lime-500 text-slate-700"
                                     value={filters.sector} onChange={(e) => setFilters({ ...filters, sector: e.target.value })}
                                 >
                                     <option value="All">All Sectors</option>
@@ -173,9 +173,9 @@ export default function AISearchEngine() {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-300">Startup Stage</label>
+                                <label className="text-sm font-medium text-slate-500">Startup Stage</label>
                                 <select
-                                    className="w-full bg-black/50 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
+                                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-lime-500 text-slate-700"
                                     value={filters.stage} onChange={(e) => setFilters({ ...filters, stage: e.target.value })}
                                 >
                                     <option value="All">All Stages</option>
@@ -188,9 +188,9 @@ export default function AISearchEngine() {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-300">Business Model</label>
+                                <label className="text-sm font-medium text-slate-500">Business Model</label>
                                 <select
-                                    className="w-full bg-black/50 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
+                                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-lime-500 text-slate-700"
                                     value={filters.businessModel} onChange={(e) => setFilters({ ...filters, businessModel: e.target.value })}
                                 >
                                     <option value="All">Any Model</option>
@@ -204,10 +204,10 @@ export default function AISearchEngine() {
                             </div>
 
                             {/* Divider for Advanced Options Toggle */}
-                            <div className="pt-4 border-t border-slate-700/50">
+                            <div className="pt-4 border-t border-slate-200">
                                 <button
                                     onClick={() => setShowAdvanced(!showAdvanced)}
-                                    className="flex items-center justify-between w-full text-sm font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
+                                    className="flex items-center justify-between w-full text-sm font-semibold text-emerald-600 hover:text-lime-300 transition-colors"
                                 >
                                     <span className="flex items-center gap-2"><SlidersHorizontal className="w-4 h-4" /> Advanced Financials</span>
                                     <ChevronRight className={`w-4 h-4 transform transition-transform ${showAdvanced ? 'rotate-90' : ''}`} />
@@ -218,9 +218,9 @@ export default function AISearchEngine() {
                             {showAdvanced && (
                                 <div className="space-y-5 pt-2 animate-in fade-in slide-in-from-top-2">
                                     <div className="space-y-2">
-                                        <label className="text-xs font-medium text-slate-400">Company Type</label>
+                                        <label className="text-xs font-medium text-slate-9000">Company Type</label>
                                         <select
-                                            className="w-full bg-black/50 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
+                                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-lime-500 text-slate-700"
                                             value={filters.companyType} onChange={(e) => setFilters({ ...filters, companyType: e.target.value })}
                                         >
                                             <option value="All">All Types</option>
@@ -230,9 +230,9 @@ export default function AISearchEngine() {
                                         </select>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-xs font-medium text-slate-400">Revenue Model</label>
+                                        <label className="text-xs font-medium text-slate-9000">Revenue Model</label>
                                         <select
-                                            className="w-full bg-black/50 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
+                                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-lime-500 text-slate-700"
                                             value={filters.revenueModel} onChange={(e) => setFilters({ ...filters, revenueModel: e.target.value })}
                                         >
                                             <option value="All">All Models</option>
@@ -245,50 +245,50 @@ export default function AISearchEngine() {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="text-xs font-medium text-slate-400">Max Investment (₹)</label>
+                                        <label className="text-xs font-medium text-slate-9000">Max Investment (₹)</label>
                                         <input type="number" step="1000000"
-                                            className="w-full bg-black/50 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
+                                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-lime-500 text-slate-700"
                                             value={filters.maxInvestment} onChange={(e) => setFilters({ ...filters, maxInvestment: Number(e.target.value) })}
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-xs font-medium text-slate-400">Min. Monthly Revenue (₹)</label>
+                                        <label className="text-xs font-medium text-slate-9000">Min. Monthly Revenue (₹)</label>
                                         <input type="number" step="50000"
-                                            className="w-full bg-black/50 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
+                                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-lime-500 text-slate-700"
                                             value={filters.minRevenue} onChange={(e) => setFilters({ ...filters, minRevenue: Number(e.target.value) })}
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-xs font-medium text-slate-400">Min. Equity Offered (%)</label>
+                                        <label className="text-xs font-medium text-slate-9000">Min. Equity Offered (%)</label>
                                         <input type="number" step="1" max="100" min="0"
-                                            className="w-full bg-black/50 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
+                                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-lime-500 text-slate-700"
                                             value={filters.minEquity} onChange={(e) => setFilters({ ...filters, minEquity: Number(e.target.value) })}
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-xs font-medium text-slate-400">Max Monthly Burn (₹)</label>
+                                        <label className="text-xs font-medium text-slate-9000">Max Monthly Burn (₹)</label>
                                         <input type="number" step="50000"
-                                            className="w-full bg-black/50 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
+                                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-lime-500 text-slate-700"
                                             value={filters.maxBurn} onChange={(e) => setFilters({ ...filters, maxBurn: Number(e.target.value) })}
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-xs font-medium text-slate-400">Min Runway (Months)</label>
+                                        <label className="text-xs font-medium text-slate-9000">Min Runway (Months)</label>
                                         <input type="number" step="1"
-                                            className="w-full bg-black/50 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-200"
+                                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-lime-500 text-slate-700"
                                             value={filters.minRunway} onChange={(e) => setFilters({ ...filters, minRunway: Number(e.target.value) })}
                                         />
                                     </div>
                                     <label className="flex items-center gap-2 cursor-pointer pt-2">
-                                        <input type="checkbox" className="w-4 h-4 accent-indigo-500" checked={filters.excludeLegalRisk} onChange={(e) => setFilters({ ...filters, excludeLegalRisk: e.target.checked })} />
-                                        <span className="text-xs font-medium text-slate-300">Exclude Pending Legal Risks</span>
+                                        <input type="checkbox" className="w-4 h-4 accent-lime-500" checked={filters.excludeLegalRisk} onChange={(e) => setFilters({ ...filters, excludeLegalRisk: e.target.checked })} />
+                                        <span className="text-xs font-medium text-slate-500">Exclude Pending Legal Risks</span>
                                     </label>
                                 </div>
                             )}
 
                             <button
                                 onClick={handleSearch}
-                                className="w-full py-3 mt-6 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2"
+                                className="w-full py-3 mt-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-colors shadow-[0_0_20px_-5px_rgba(163,230,53,0.4)] flex items-center justify-center gap-2"
                             >
                                 {isSearching ? <BrainCircuit className="w-5 h-5 animate-pulse" /> : <Search className="w-5 h-5" />}
                                 {isSearching ? "Processing Data..." : "Apply Filters"}
@@ -299,16 +299,16 @@ export default function AISearchEngine() {
 
                 {/* Results Grid */}
                 <div className="lg:col-span-3">
-                    <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
-                        <h3 className="text-xl font-semibold text-slate-200">
+                    <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+                        <h3 className="text-xl font-semibold text-slate-800">
                             {results.length} Validated Opportunities
                         </h3>
 
                         {/* Sorting Dropdown */}
                         <div className="flex items-center gap-2">
-                            <ArrowUpDown className="w-4 h-4 text-slate-400" />
+                            <ArrowUpDown className="w-4 h-4 text-slate-9000" />
                             <select
-                                className="bg-black/40 border border-slate-700 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-300"
+                                className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-lime-500 text-slate-700"
                                 value={filters.sortBy}
                                 onChange={(e) => {
                                     setFilters({ ...filters, sortBy: e.target.value });
@@ -327,8 +327,8 @@ export default function AISearchEngine() {
 
                     {isLoadingData ? (
                         <div className="py-24 text-center">
-                            <Activity className="w-16 h-16 text-indigo-500 animate-spin mx-auto mb-4" />
-                            <h3 className="text-2xl font-bold text-slate-300">Synchronizing with Deal Flow Database...</h3>
+                            <Activity className="w-16 h-16 text-emerald-600 animate-spin mx-auto mb-4" />
+                            <h3 className="text-2xl font-bold text-slate-900">Synchronizing with Deal Flow Database...</h3>
                             <p className="text-slate-500">Evaluating multi-metric profiles and financials.</p>
                         </div>
                     ) : (
@@ -338,76 +338,76 @@ export default function AISearchEngine() {
 
                                 return (
                                     <div key={startup._id || startup.id}
-                                        className="glass-panel p-6 rounded-2xl flex flex-col md:flex-row gap-6 group hover:border-indigo-500/50 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4"
+                                        className="bg-white border border-slate-200 rounded-2xl shadow-sm border border-slate-200 p-6 rounded-2xl flex flex-col md:flex-row gap-6 group hover:border-emerald-400 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 bg-white"
                                         style={{ animationDelay: `${idx * 100}ms` }}
                                     >
                                         {/* Score Circular badge */}
                                         <div className="relative w-20 h-20 shrink-0 self-center md:self-start">
                                             <svg className="w-full h-full transform -rotate-90">
-                                                <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-slate-800" />
-                                                <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray="226" strokeDashoffset={226 - (226 * startup.score) / 100} className="text-indigo-500 transition-all duration-1000" />
+                                                <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-zinc-800" />
+                                                <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray="226" strokeDashoffset={226 - (226 * startup.score) / 100} className="text-emerald-600 transition-all duration-1000" />
                                             </svg>
                                             <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                                <span className="text-xl font-bold text-white">{startup.score}</span>
-                                                <span className="text-[10px] text-indigo-300 font-bold uppercase tracking-wider">Match</span>
+                                                <span className="text-xl font-bold text-slate-900">{startup.score}</span>
+                                                <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">Match</span>
                                             </div>
                                         </div>
 
                                         <div className="flex-grow space-y-3 text-center md:text-left">
                                             <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
-                                                <h3 className="text-2xl font-bold text-white font-outfit group-hover:text-indigo-400 transition-colors">{startup.name}</h3>
-                                                <span className="px-2.5 py-1 bg-white/10 rounded-md text-xs font-medium text-slate-300">{startup.sector}</span>
-                                                {startup.businessModel && <span className="px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-300 rounded-md text-xs font-medium">{startup.businessModel}</span>}
-                                                <span className="px-2.5 py-1 bg-indigo-500/20 text-indigo-300 rounded-md text-xs font-medium">{startup.stage || "Seed"}</span>
-                                                <span className={`px-2.5 py-1 rounded-md border text-xs font-medium ${startup.risk === 'Low' ? 'bg-green-500/10 border-green-500/20 text-green-400' : startup.risk === 'Medium' ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
+                                                <h3 className="text-2xl font-bold text-slate-800 font-outfit group-hover:text-emerald-600 transition-colors">{startup.name}</h3>
+                                                <span className="px-2.5 py-1 bg-slate-200 border border-slate-300 rounded-md text-xs font-medium text-slate-700">{startup.sector}</span>
+                                                {startup.businessModel && <span className="px-2.5 py-1 bg-slate-200 border border-slate-300 text-slate-700 rounded-md text-xs font-medium">{startup.businessModel}</span>}
+                                                <span className="px-2.5 py-1 bg-emerald-900/30 border border-emerald-500/30 text-emerald-600 rounded-md text-xs font-medium">{startup.stage || "Seed"}</span>
+                                                <span className={`px-2.5 py-1 rounded-md border text-xs font-medium ${startup.risk === 'Low' ? 'bg-emerald-50 border-emerald-300 text-emerald-600' : startup.risk === 'Medium' ? 'bg-yellow-900/30 border-yellow-500/30 text-yellow-500' : 'bg-red-900/30 border-red-500/30 text-red-500'}`}>
                                                     {startup.risk} Risk
                                                 </span>
 
                                                 {/* Credibility Badges */}
                                                 {(startup.credibility?.gstRegistered || startup.credibility?.panVerified) && (
-                                                    <span className="px-2.5 py-1 bg-green-500/10 border border-green-500/20 text-green-400 rounded-md text-xs font-medium flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> Verified</span>
+                                                    <span className="px-2.5 py-1 bg-emerald-50 border border-emerald-300 text-emerald-600 rounded-md text-xs font-medium flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> Verified</span>
                                                 )}
                                                 {startup.credibility?.incubatorBacked && (
-                                                    <span className="px-2.5 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-md text-xs font-medium flex items-center gap-1"><Building2 className="w-3 h-3" /> VC Backed</span>
+                                                    <span className="px-2.5 py-1 bg-emerald-900/30 border border-emerald-500/30 text-emerald-600 rounded-md text-xs font-medium flex items-center gap-1"><Building2 className="w-3 h-3" /> VC Backed</span>
                                                 )}
                                             </div>
 
-                                            <p className="text-slate-400 text-sm line-clamp-2">{startup.desc}</p>
+                                            <p className="text-slate-500 text-sm line-clamp-2">{startup.desc}</p>
 
-                                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-slate-700/50 mt-4">
+                                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-slate-200 mt-4">
                                                 <div>
-                                                    <p className="text-slate-500 text-xs mb-1">Asking Size</p>
-                                                    <p className="text-slate-200 font-semibold text-sm font-mono">₹{(startup.requested / 100000).toFixed(1)}L</p>
+                                                    <p className="text-slate-9000 text-xs mb-1">Asking Size</p>
+                                                    <p className="text-slate-800 font-semibold text-sm font-mono">₹{(startup.requested / 100000).toFixed(1)}L</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-slate-500 text-xs mb-1">Equity Offered</p>
-                                                    <p className="text-indigo-300 font-semibold text-sm">{startup.equity}%</p>
+                                                    <p className="text-slate-9000 text-xs mb-1">Equity Offered</p>
+                                                    <p className="text-emerald-600 font-semibold text-sm">{startup.equity}%</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-slate-500 text-xs mb-1">Implied Valuation</p>
-                                                    <p className="text-slate-200 font-semibold text-sm font-mono">₹{(impliedValuation / 10000000).toFixed(2)}Cr</p>
+                                                    <p className="text-slate-9000 text-xs mb-1">Implied Valuation</p>
+                                                    <p className="text-slate-800 font-semibold text-sm font-mono">₹{(impliedValuation / 10000000).toFixed(2)}Cr</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-slate-500 text-xs flex items-center gap-1 mb-1 justify-center md:justify-start">
-                                                        <LineChart className="w-3 h-3 text-green-400" /> MRR
+                                                    <p className="text-slate-9000 text-xs flex items-center gap-1 mb-1 justify-center md:justify-start">
+                                                        <LineChart className="w-3 h-3 text-emerald-600" /> MRR
                                                     </p>
-                                                    <p className="text-green-400 font-semibold text-sm font-mono whitespace-nowrap">₹{(startup.revenue / 100000).toFixed(2)}L</p>
+                                                    <p className="text-emerald-600 font-semibold text-sm font-mono whitespace-nowrap">₹{(startup.revenue / 100000).toFixed(2)}L</p>
                                                 </div>
                                             </div>
 
                                             {/* Financial Micro-metrics row extended */}
                                             <div className="flex flex-wrap gap-4 pt-2 text-xs">
-                                                {startup.financialsMonthly?.netMargin !== undefined && <span className={startup.financialsMonthly.netMargin >= 0 ? "text-green-400/80" : "text-red-400/80"}>Net Margin: <span className="font-mono font-bold">{startup.financialsMonthly.netMargin}%</span></span>}
-                                                {startup.financialsMonthly?.runway !== undefined && <span className="text-slate-400">Runway: <span className="font-mono text-slate-200 font-bold">{startup.financialsMonthly.runway === 999 ? "∞" : startup.financialsMonthly.runway + ' mo'}</span></span>}
-                                                {startup.burn > 0 && <span className="text-red-400/80">Burn: <span className="font-mono">₹{(startup.burn / 1000).toFixed(0)}K/mo</span></span>}
-                                                {startup.financials?.cac > 0 && <span className="text-slate-400">CAC: <span className="font-mono text-slate-200">₹{startup.financials.cac.toLocaleString()}</span></span>}
-                                                {startup.financials?.ltv > 0 && <span className="text-slate-400">LTV: <span className="font-mono text-slate-200">₹{startup.financials.ltv.toLocaleString()}</span></span>}
+                                                {startup.financialsMonthly?.netMargin !== undefined && <span className={startup.financialsMonthly.netMargin >= 0 ? "text-emerald-600" : "text-red-400"}>Net Margin: <span className="font-mono font-bold">{startup.financialsMonthly.netMargin}%</span></span>}
+                                                {startup.financialsMonthly?.runway !== undefined && <span className="text-slate-9000">Runway: <span className="font-mono text-slate-700 font-bold">{startup.financialsMonthly.runway === 999 ? "∞" : startup.financialsMonthly.runway + ' mo'}</span></span>}
+                                                {startup.burn > 0 && <span className="text-red-400">Burn: <span className="font-mono">₹{(startup.burn / 1000).toFixed(0)}K/mo</span></span>}
+                                                {startup.financials?.cac > 0 && <span className="text-slate-9000">CAC: <span className="font-mono text-slate-700">₹{startup.financials.cac.toLocaleString()}</span></span>}
+                                                {startup.financials?.ltv > 0 && <span className="text-slate-9000">LTV: <span className="font-mono text-slate-700">₹{startup.financials.ltv.toLocaleString()}</span></span>}
                                             </div>
                                         </div>
 
-                                        <div className="shrink-0 flex items-center justify-center border-t md:border-t-0 md:border-l border-slate-700/50 pt-4 md:pt-0 md:pl-6 mt-2 md:mt-0">
-                                            <Link href={`/startups/${startup._id}`} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-800 text-white hover:bg-indigo-600 transition-colors shadow-none hover:shadow-lg hover:shadow-indigo-500/20 font-medium text-sm w-full md:w-auto justify-center">
-                                                View Deal <ChevronRight className="w-4 h-4" />
+                                        <div className="shrink-0 flex items-center justify-center border-t md:border-t-0 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-6 mt-2 md:mt-0">
+                                            <Link href={`/startups/${startup._id}`} className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm w-full md:w-auto justify-center transition-colors shadow-sm">
+                                                <ChevronRight className="w-4 h-4" /> View Deal
                                             </Link>
                                         </div>
                                     </div>
@@ -415,13 +415,13 @@ export default function AISearchEngine() {
                             })}
 
                             {results.length === 0 && (
-                                <div className="py-24 text-center bg-black/20 rounded-2xl border border-dashed border-slate-700">
-                                    <BrainCircuit className="w-16 h-16 text-slate-700 mx-auto mb-4" />
-                                    <h3 className="text-2xl font-bold text-slate-400">No matching deal flow found.</h3>
-                                    <p className="text-slate-500 mt-2 max-w-sm mx-auto">Try widening your Advanced Financials parameters or searching across all sectors.</p>
+                                <div className="py-24 text-center bg-white rounded-2xl border border-dashed border-slate-300">
+                                    <BrainCircuit className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+                                    <h3 className="text-2xl font-bold text-slate-800">No matching deal flow found.</h3>
+                                    <p className="text-slate-9000 mt-2 max-w-sm mx-auto">Try widening your Advanced Financials parameters or searching across all sectors.</p>
                                     <button
                                         onClick={() => setFilters({ ...filters, businessModel: "All", maxBurn: 100000000, maxCac: 10000000, minLtv: 0, minRoi: 0, minEquity: 0, minRevenue: 0, maxInvestment: 500000000, companyType: "All", revenueModel: "All", minRunway: 0, excludeLegalRisk: false })}
-                                        className="mt-6 text-sm text-indigo-400 hover:text-indigo-300 underline underline-offset-4"
+                                        className="mt-6 text-sm text-emerald-600 hover:text-lime-300 underline underline-offset-4"
                                     >
                                         Reset Advanced Filters
                                     </button>

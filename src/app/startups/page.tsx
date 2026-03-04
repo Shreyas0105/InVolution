@@ -1,17 +1,48 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Activity, BarChart2, ShieldCheck, TrendingUp } from "lucide-react";
 
 export default function StartupsPage() {
     return (
-        <div className="container mx-auto px-6 py-24 min-h-screen flex flex-col items-center justify-center text-center">
-            <div className="animate-fade-in-up max-w-2xl">
-                <h1 className="text-4xl md:text-6xl font-outfit font-bold text-white mb-6">For Startups</h1>
-                <p className="text-xl text-slate-400 font-inter leading-relaxed mb-10">
-                    Get in front of verified, active investors. Publish your verified profile, set your terms, and let our AI match you with the capital you need to scale.
+        <div className="min-h-screen section-emerald relative overflow-hidden">
+            {/* Dot grid */}
+            <div className="absolute inset-0 bg-dot-grid opacity-30 pointer-events-none" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] rounded-full bg-emerald-200/30 blur-[120px] pointer-events-none" />
+
+            <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 py-28 max-w-3xl mx-auto">
+                <div className="section-label mx-auto mb-8">
+                    <Activity className="w-3.5 h-3.5" /> For Startup Founders
+                </div>
+                <h1 className="text-4xl md:text-6xl font-outfit font-bold text-slate-900 mb-4 leading-tight">
+                    Your Startup. <span className="text-gradient">Verified.</span><br />
+                    Your Raise. <span className="text-gradient">Accelerated.</span>
+                </h1>
+                <span className="block divider-emerald mx-auto my-5" />
+                <p className="text-lg text-slate-500 leading-relaxed mb-10 max-w-xl">
+                    Get in front of verified, active investors. Publish your profile, set your terms, and let our AI match you with the capital you need to scale.
                 </p>
-                <Link href="/startups/publish" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-indigo-500 to-pink-500 text-white font-bold rounded-full hover:shadow-[0_0_20px_rgba(236,72,153,0.4)] transition-all">
-                    Publish Profile <ArrowRight className="w-5 h-5" />
-                </Link>
+
+                <div className="flex flex-col sm:flex-row gap-3 justify-center mb-16">
+                    <Link href="/startups/publish" className="btn-primary inline-flex items-center gap-2 text-sm">
+                        Publish Profile <ArrowRight className="w-4 h-4" />
+                    </Link>
+                    <Link href="/login" className="btn-secondary inline-block text-sm">
+                        Log In
+                    </Link>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
+                    {[
+                        { icon: <BarChart2 className="w-4 h-4 text-emerald-600" />, label: 'AI Diligence Score', value: '88/100' },
+                        { icon: <ShieldCheck className="w-4 h-4 text-emerald-600" />, label: 'Trust Tier', value: 'PLATINUM' },
+                        { icon: <Activity className="w-4 h-4 text-emerald-600" />, label: 'Health Score', value: '98/100' },
+                        { icon: <TrendingUp className="w-4 h-4 text-emerald-600" />, label: 'Growth Rate', value: '+12% MoM' },
+                    ].map((c, i) => (
+                        <div key={i} className="dashboard-card p-4 text-left">
+                            <div className="flex items-center gap-1.5 mb-2">{c.icon}<span className="text-[11px] text-slate-400 font-medium">{c.label}</span></div>
+                            <p className="text-base font-bold text-slate-800 metric-value">{c.value}</p>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );

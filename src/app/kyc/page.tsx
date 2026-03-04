@@ -82,16 +82,16 @@ export default function KYCSubmitPage() {
     return (
         <div className="container mx-auto px-6 py-12 max-w-4xl min-h-screen">
             <div className="mb-10 text-center animate-fade-in-up">
-                <div className="inline-flex justify-center items-center w-16 h-16 rounded-full bg-indigo-500/20 mb-4">
-                    <ShieldCheck className="w-8 h-8 text-indigo-400" />
+                <div className="inline-flex justify-center items-center w-16 h-16 rounded-full bg-indigo-50 mb-4">
+                    <ShieldCheck className="w-8 h-8 text-indigo-600" />
                 </div>
-                <h1 className="text-4xl font-outfit font-bold text-white mb-4">Secure Identity Verification</h1>
-                <p className="text-slate-400 font-inter max-w-xl mx-auto">
+                <h1 className="text-4xl font-outfit font-bold text-slate-900 mb-4">Secure Identity Verification</h1>
+                <p className="text-slate-500 font-inter max-w-xl mx-auto">
                     To ensure platform safety, please complete your simulated KYC by providing your PAN and Aadhaar details. Your documents are encrypted and securely validated.
                 </p>
             </div>
 
-            <div className="glass-panel rounded-2xl p-8 relative overflow-hidden">
+            <div className="bg-white border border-slate-200 shadow-sm rounded-2xl rounded-2xl p-8 relative overflow-hidden">
                 {/* Decorative background glow */}
                 <div className="absolute -top-32 -left-32 w-64 h-64 bg-indigo-600/20 rounded-full blur-[100px]" />
 
@@ -100,9 +100,9 @@ export default function KYCSubmitPage() {
                         <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mb-6">
                             <CheckCircle2 className="w-10 h-10 text-green-400" />
                         </div>
-                        <h2 className="text-2xl font-bold text-white font-outfit mb-3">Verification Successful</h2>
-                        <p className="text-slate-400 max-w-md">Your Aadhaar <b>({aadharMasked})</b> and PAN have been verified via our OCR validation simulation. Your profile is now marked as secure.</p>
-                        <p className="mt-4 text-indigo-400 font-medium flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Redirecting to your dashboard...</p>
+                        <h2 className="text-2xl font-bold text-slate-900 font-outfit mb-3">Verification Successful</h2>
+                        <p className="text-slate-500 max-w-md">Your Aadhaar <b>({aadharMasked})</b> and PAN have been verified via our OCR validation simulation. Your profile is now marked as secure.</p>
+                        <p className="mt-4 text-indigo-600 font-medium flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Redirecting to your dashboard...</p>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="relative z-10 space-y-8">
@@ -110,44 +110,44 @@ export default function KYCSubmitPage() {
 
                             {/* Aadhaar Section */}
                             <div className="space-y-4">
-                                <label className="block text-sm font-medium text-slate-300 font-inter">Aadhaar Number</label>
+                                <label className="block text-sm font-medium text-slate-600 font-inter">Aadhaar Number</label>
                                 <div className="relative">
                                     <input
                                         type="text"
                                         placeholder="0000 0000 0000"
-                                        className="w-full bg-black/50 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                        className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                                         value={aadhaar}
                                         onChange={(e) => setAadhaar(e.target.value)}
                                         required
                                     />
                                 </div>
 
-                                <div className="border-2 border-dashed border-slate-700 rounded-xl p-6 text-center hover:border-indigo-400 transition-colors bg-black/20 group cursor-pointer relative overflow-hidden">
+                                <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-indigo-400 transition-colors bg-slate-50 group cursor-pointer relative overflow-hidden">
                                     <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => setFileA(e.target.files?.[0] || null)} required />
-                                    <Upload className="mx-auto h-8 w-8 text-slate-400 group-hover:text-indigo-400 mb-2 transition-colors" />
-                                    <p className="text-sm text-slate-300 font-medium">Upload Aadhaar Card</p>
+                                    <Upload className="mx-auto h-8 w-8 text-slate-500 group-hover:text-indigo-600 mb-2 transition-colors" />
+                                    <p className="text-sm text-slate-600 font-medium">Upload Aadhaar Card</p>
                                     <p className="text-xs text-slate-500 mt-1">{fileA ? fileA.name : "PNG, JPG, PDF up to 5MB"}</p>
                                 </div>
                             </div>
 
                             {/* PAN Section */}
                             <div className="space-y-4">
-                                <label className="block text-sm font-medium text-slate-300 font-inter">PAN Number</label>
+                                <label className="block text-sm font-medium text-slate-600 font-inter">PAN Number</label>
                                 <div className="relative">
                                     <input
                                         type="text"
                                         placeholder="ABCDE1234F"
-                                        className="w-full bg-black/50 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all uppercase"
+                                        className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all uppercase"
                                         value={pan}
                                         onChange={(e) => setPan(e.target.value.toUpperCase())}
                                         required
                                     />
                                 </div>
 
-                                <div className="border-2 border-dashed border-slate-700 rounded-xl p-6 text-center hover:border-pink-400 transition-colors bg-black/20 group cursor-pointer relative overflow-hidden">
+                                <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-pink-400 transition-colors bg-slate-50 group cursor-pointer relative overflow-hidden">
                                     <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => setFileP(e.target.files?.[0] || null)} required />
-                                    <FileText className="mx-auto h-8 w-8 text-slate-400 group-hover:text-pink-400 mb-2 transition-colors" />
-                                    <p className="text-sm text-slate-300 font-medium">Upload PAN Card</p>
+                                    <FileText className="mx-auto h-8 w-8 text-slate-500 group-hover:text-pink-400 mb-2 transition-colors" />
+                                    <p className="text-sm text-slate-600 font-medium">Upload PAN Card</p>
                                     <p className="text-xs text-slate-500 mt-1">{fileP ? fileP.name : "PNG, JPG, PDF up to 5MB"}</p>
                                 </div>
                             </div>
@@ -162,11 +162,11 @@ export default function KYCSubmitPage() {
                         )}
 
 
-                        <div className="pt-4 border-t border-white/5 flex justify-end">
+                        <div className="pt-4 border-t border-slate-200 flex justify-end">
                             <button
                                 type="submit"
                                 disabled={status === "verifying"}
-                                className="px-8 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-full hover:shadow-[0_0_20px_rgba(99,102,241,0.4)] transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                className="px-8 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-slate-900 font-semibold rounded-full hover:shadow-[0_0_20px_rgba(99,102,241,0.4)] transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                             >
                                 {status === "verifying" ? (
                                     <>

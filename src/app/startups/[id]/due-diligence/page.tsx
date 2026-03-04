@@ -11,18 +11,18 @@ import {
 } from "lucide-react";
 
 const COLOR_MAP: Record<string, string> = {
-    emerald: "text-emerald-400",
+    emerald: "text-emerald-600",
     blue: "text-blue-400",
-    yellow: "text-yellow-400",
+    yellow: "text-amber-700",
     orange: "text-orange-400",
     red: "text-red-400",
 };
 const BG_COLOR_MAP: Record<string, string> = {
-    emerald: "bg-emerald-500/20 border-emerald-500/30",
-    blue: "bg-blue-500/20 border-blue-500/30",
-    yellow: "bg-yellow-500/20 border-yellow-500/30",
-    orange: "bg-orange-500/20 border-orange-500/30",
-    red: "bg-red-500/20 border-red-500/30",
+    emerald: "bg-emerald-900/30 border border-emerald-500/20",
+    blue: "bg-blue-900/30 border border-blue-500/20",
+    yellow: "bg-amber-100 border border-amber-200",
+    orange: "bg-orange-900/30 border border-orange-500/20",
+    red: "bg-red-900/30 border border-red-500/20",
 };
 
 const SECTION_ICONS: Record<string, React.ReactElement> = {
@@ -62,7 +62,7 @@ export default function DueDiligencePage() {
         <div className="min-h-screen flex items-center justify-center">
             <div className="text-center">
                 <BrainCircuit className="w-16 h-16 text-indigo-400 animate-pulse mx-auto mb-4" />
-                <p className="text-slate-300 text-lg font-semibold">AI Due Diligence Engine Running...</p>
+                <p className="text-slate-900 text-lg font-bold">AI Due Diligence Engine Running...</p>
                 <p className="text-slate-500 text-sm mt-1">Analysing financials, growth metrics, credibility & risk</p>
             </div>
         </div>
@@ -72,47 +72,47 @@ export default function DueDiligencePage() {
         <div className="min-h-screen flex items-center justify-center">
             <div className="text-center">
                 <XCircle className="w-12 h-12 text-red-400 mx-auto mb-3" />
-                <p className="text-red-400 font-semibold">{error}</p>
-                <Link href={`/startups/${id}`} className="mt-4 text-indigo-400 hover:underline flex items-center gap-1 justify-center text-sm">
+                <p className="text-red-400 font-bold">{error}</p>
+                <Link href={`/startups/${id}`} className="mt-4 text-indigo-400 hover:text-indigo-300 flex items-center gap-1 justify-center text-sm transition-colors">
                     <ArrowLeft className="w-4 h-4" /> Back to Profile
                 </Link>
             </div>
         </div>
     );
 
-    const verdictColor = COLOR_MAP[report.verdict?.color] ?? "text-slate-300";
-    const verdictBg = BG_COLOR_MAP[report.verdict?.color] ?? "bg-slate-800";
+    const verdictColor = COLOR_MAP[report.verdict?.color] ?? "text-slate-900";
+    const verdictBg = BG_COLOR_MAP[report.verdict?.color] ?? "bg-slate-50 border-slate-200";
 
     return (
         <div className="container mx-auto px-6 py-12 max-w-5xl min-h-screen">
             {/* Header */}
             <div className="mb-10">
-                <Link href={`/startups/${id}`} className="flex items-center gap-2 text-slate-400 hover:text-white text-sm mb-6 transition-colors">
+                <Link href={`/startups/${id}`} className="flex items-center gap-2 text-slate-400 hover:text-emerald-600 text-sm mb-6 transition-colors">
                     <ArrowLeft className="w-4 h-4" /> Back to Profile
                 </Link>
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div>
                         <div className="flex items-center gap-2 mb-2">
                             <BrainCircuit className="w-6 h-6 text-indigo-400" />
-                            <span className="text-xs font-bold uppercase tracking-widest text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
+                            <span className="text-xs font-bold uppercase tracking-widest text-indigo-400 bg-indigo-900/30 px-3 py-1 rounded-full border border-indigo-500/20">
                                 AI Due Diligence Report
                             </span>
                         </div>
-                        <h1 className="text-3xl font-bold text-white">{startup?.name}</h1>
-                        <p className="text-slate-400 mt-1">{startup?.sector} · {startup?.stage} Stage</p>
+                        <h1 className="text-3xl font-bold text-slate-900">{startup?.name}</h1>
+                        <p className="text-slate-500 mt-1">{startup?.sector} · {startup?.stage} Stage</p>
                     </div>
                     <div className={`px-6 py-3 rounded-2xl border ${verdictBg} text-center`}>
-                        <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">AI Verdict</p>
+                        <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">AI Verdict</p>
                         <p className={`text-xl font-bold ${verdictColor}`}>{report.verdict?.label}</p>
                     </div>
                 </div>
             </div>
 
             {/* Overall Score */}
-            <div className="glass-panel p-8 rounded-2xl mb-8 flex flex-col md:flex-row items-center gap-8">
+            <div className="bg-white border border-slate-200 shadow-sm rounded-2xl bg-white p-8 rounded-2xl mb-8 flex flex-col md:flex-row items-center gap-8 border border-slate-200">
                 <div className="relative w-44 h-44 shrink-0">
                     <svg className="w-full h-full -rotate-90">
-                        <circle cx="88" cy="88" r="78" strokeWidth="10" fill="transparent" className="text-slate-800" stroke="currentColor" />
+                        <circle cx="88" cy="88" r="78" strokeWidth="10" fill="transparent" className="text-zinc-800" stroke="currentColor" />
                         <circle cx="88" cy="88" r="78" strokeWidth="10" fill="transparent"
                             strokeDasharray="490"
                             strokeDashoffset={490 - (490 * report.totalScore) / 100}
@@ -122,22 +122,22 @@ export default function DueDiligencePage() {
                         />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-5xl font-bold text-white">{report.totalScore}</span>
-                        <span className="text-sm text-slate-400 font-medium">/ 100</span>
+                        <span className="text-5xl font-bold text-slate-900">{report.totalScore}</span>
+                        <span className="text-sm text-slate-400 font-bold">/ 100</span>
                     </div>
                 </div>
                 <div className="flex-grow">
-                    <h2 className="text-2xl font-bold text-white mb-2">Overall Due Diligence Score</h2>
-                    <p className="text-slate-400 mb-4 text-sm">Based on financial health (30%), growth metrics (20%), team & credibility (25%), and risk & legal (25%).</p>
+                    <h2 className="text-2xl font-bold text-slate-900 mb-2">Overall Due Diligence Score</h2>
+                    <p className="text-slate-500 mb-4 text-sm">Based on financial health (30%), growth metrics (20%), team & credibility (25%), and risk & legal (25%).</p>
                     <div className="grid grid-cols-2 gap-3">
                         {report.sections?.map((sec: any) => (
-                            <div key={sec.id} className="bg-slate-900/50 rounded-xl p-3 border border-slate-800">
+                            <div key={sec.id} className="bg-white rounded-xl p-3 border border-slate-200">
                                 <p className="text-xs text-slate-500 mb-1">{sec.label}</p>
                                 <div className="flex items-center gap-2">
-                                    <div className="flex-grow h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                    <div className="flex-grow h-1.5 bg-slate-200 rounded-full overflow-hidden">
                                         <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${(sec.score / sec.maxScore) * 100}%` }} />
                                     </div>
-                                    <span className="text-xs font-mono text-slate-300 shrink-0">{sec.score}/{sec.maxScore}</span>
+                                    <span className="text-xs font-mono font-bold text-slate-600 shrink-0">{sec.score}/{sec.maxScore}</span>
                                 </div>
                             </div>
                         ))}
@@ -157,63 +157,63 @@ export default function DueDiligencePage() {
                     { label: "Team Size", value: `${report.keyMetrics?.teamSize} people` },
                     { label: "Equity Ask", value: `${report.keyMetrics?.equity}%` },
                 ].map(m => (
-                    <div key={m.label} className="glass-panel p-4 rounded-xl">
-                        <p className="text-xs text-slate-500 mb-1">{m.label}</p>
-                        <p className="text-lg font-bold font-mono text-white">{m.value}</p>
+                    <div key={m.label} className="bg-white border border-slate-200 shadow-sm rounded-2xl bg-white p-4 rounded-xl border border-slate-200">
+                        <p className="text-xs text-slate-400 font-bold mb-1">{m.label}</p>
+                        <p className="text-lg font-bold font-mono text-slate-800">{m.value}</p>
                     </div>
                 ))}
             </div>
 
             {/* Section Deep Dives */}
             <div className="space-y-4">
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                     <FileSearch className="w-5 h-5 text-indigo-400" /> Detailed Analysis
                 </h2>
                 {report.sections?.map((sec: any) => {
                     const pct = sec.maxScore > 0 ? (sec.score / sec.maxScore) * 100 : 0;
-                    const barColor = pct >= 75 ? "bg-emerald-500" : pct >= 50 ? "bg-yellow-500" : "bg-red-500";
+                    const barColor = pct >= 75 ? "bg-emerald-500" : pct >= 50 ? "bg-amber-500" : "bg-red-500";
                     const isExpanded = expandedSection === sec.id;
                     return (
-                        <div key={sec.id} className="glass-panel rounded-2xl overflow-hidden">
+                        <div key={sec.id} className="bg-white border border-slate-200 shadow-sm rounded-2xl bg-white rounded-2xl overflow-hidden border border-slate-200">
                             <button
-                                className="w-full p-6 flex items-center gap-4 text-left hover:bg-white/5 transition-colors"
+                                className="w-full p-6 flex items-center gap-4 text-left hover:bg-slate-200/50 transition-colors"
                                 onClick={() => setExpandedSection(isExpanded ? null : sec.id)}
                             >
-                                <div className="w-10 h-10 bg-indigo-500/20 rounded-full flex items-center justify-center shrink-0 text-indigo-400">
+                                <div className="w-10 h-10 bg-indigo-900/30 rounded-full flex items-center justify-center shrink-0 text-indigo-400 border border-indigo-500/20">
                                     {SECTION_ICONS[sec.id] ?? <Activity className="w-5 h-5" />}
                                 </div>
                                 <div className="flex-grow">
                                     <div className="flex justify-between items-center mb-2">
-                                        <p className="font-bold text-white">{sec.label}</p>
-                                        <span className="font-mono text-sm text-slate-300">{sec.score} / {sec.maxScore} pts</span>
+                                        <p className="font-bold text-slate-800">{sec.label}</p>
+                                        <span className="font-mono font-bold text-sm text-slate-500">{sec.score} / {sec.maxScore} pts</span>
                                     </div>
-                                    <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                                    <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
                                         <div className={`h-full rounded-full ${barColor} transition-all duration-700`} style={{ width: `${pct}%` }} />
                                     </div>
                                 </div>
                                 {isExpanded ? <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />}
                             </button>
                             {isExpanded && (
-                                <div className="px-6 pb-6 grid md:grid-cols-2 gap-4 border-t border-white/5">
+                                <div className="px-6 pb-6 grid md:grid-cols-2 gap-4 border-t border-slate-200">
                                     <div>
-                                        <p className="text-xs font-bold uppercase tracking-widest text-emerald-400 mb-3 flex items-center gap-1 mt-4">
+                                        <p className="text-xs font-bold uppercase tracking-widest text-emerald-600 mb-3 flex items-center gap-1 mt-4">
                                             <CheckCircle2 className="w-3 h-3" /> Strengths
                                         </p>
                                         {sec.strengths?.length > 0 ? sec.strengths.map((s: string, i: number) => (
-                                            <p key={i} className="text-sm text-slate-300 flex items-start gap-2 mb-2">
-                                                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" /> {s}
+                                            <p key={i} className="text-sm font-medium text-slate-600 flex items-start gap-2 mb-2">
+                                                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" /> {s}
                                             </p>
-                                        )) : <p className="text-slate-500 text-sm">No strengths identified.</p>}
+                                        )) : <p className="text-slate-400 italic text-sm">No strengths identified.</p>}
                                     </div>
                                     <div>
                                         <p className="text-xs font-bold uppercase tracking-widest text-red-400 mb-3 flex items-center gap-1 mt-4">
                                             <AlertTriangle className="w-3 h-3" /> Flags
                                         </p>
                                         {sec.flags?.length > 0 ? sec.flags.map((f: string, i: number) => (
-                                            <p key={i} className="text-sm text-slate-300 flex items-start gap-2 mb-2">
+                                            <p key={i} className="text-sm font-medium text-slate-600 flex items-start gap-2 mb-2">
                                                 <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" /> {f}
                                             </p>
-                                        )) : <p className="text-slate-500 text-sm">No flags found. ✓</p>}
+                                        )) : <p className="text-slate-400 italic text-sm">No flags found. ✓</p>}
                                     </div>
                                 </div>
                             )}
@@ -223,7 +223,7 @@ export default function DueDiligencePage() {
             </div>
 
             {/* Footer */}
-            <div className="mt-10 text-center text-xs text-slate-600">
+            <div className="mt-10 text-center text-xs text-slate-400 font-bold">
                 Generated by InVolution AI Engine · {new Date(report.generatedAt).toLocaleString()} · Report is advisory only — not financial advice.
             </div>
         </div>

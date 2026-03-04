@@ -38,8 +38,8 @@ export default function StartupProfile() {
         return (
             <div className="min-h-screen flex items-center justify-center pt-24 pb-20">
                 <div className="py-24 text-center">
-                    <Activity className="w-16 h-16 text-indigo-500 animate-spin mx-auto mb-4" />
-                    <h3 className="text-2xl font-bold text-slate-300">Decrypting Profile...</h3>
+                    <Activity className="w-16 h-16 text-emerald-600 animate-spin mx-auto mb-4" />
+                    <h3 className="text-2xl font-bold text-slate-900">Decrypting Profile...</h3>
                 </div>
             </div>
         );
@@ -50,9 +50,9 @@ export default function StartupProfile() {
             <div className="min-h-screen flex items-center justify-center pt-24 pb-20">
                 <div className="text-center">
                     <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                    <h3 className="text-2xl font-bold text-white mb-2">Startup Not Found</h3>
+                    <h3 className="text-2xl font-bold text-slate-900 mb-2">Startup Not Found</h3>
                     <p className="text-slate-400">This profile might have been delisted or restricted.</p>
-                    <Link href="/investors/search" className="mt-6 inline-block px-6 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700">Return to Search</Link>
+                    <Link href="/investors/search" className="mt-6 inline-block px-6 py-2 bg-slate-50 border border-slate-300 hover:border-emerald-400 hover:text-emerald-600 text-slate-700 rounded-lg transition-colors">Return to Search</Link>
                 </div>
             </div>
         );
@@ -81,33 +81,33 @@ export default function StartupProfile() {
     return (
         <div className="min-h-screen pb-20">
             {/* Hero Header */}
-            <div className="bg-slate-900 border-b border-white/10 pt-8 pb-16">
+            <div className="bg-white border-b border-slate-200 pt-8 pb-16">
                 <div className="container mx-auto px-6 max-w-5xl">
-                    <Link href="/investors/search" className="inline-flex items-center gap-2 text-slate-400 hover:text-white mb-8 transition-colors">
+                    <Link href="/investors/search" className="inline-flex items-center gap-2 text-slate-400 hover:text-emerald-600 mb-8 transition-colors">
                         <ArrowLeft className="w-4 h-4" /> Back to Search
                     </Link>
 
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                         <div className="flex items-center gap-6">
-                            <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-pink-500/20 border border-white/10 flex items-center justify-center shadow-2xl">
-                                <span className="text-4xl font-bold font-outfit text-white">{startup.name.charAt(0)}</span>
+                            <div className="w-24 h-24 rounded-2xl bg-slate-200 border border-slate-300 flex items-center justify-center shadow-xl">
+                                <span className="text-4xl font-bold font-outfit text-slate-600">{startup.name.charAt(0)}</span>
                             </div>
                             <div>
                                 <div className="flex items-center gap-3 mb-2">
-                                    <h1 className="text-4xl font-bold font-outfit text-white">{startup.name}</h1>
-                                    <span className="px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full text-xs font-bold text-green-400 flex items-center gap-1">
+                                    <h1 className="text-4xl font-bold font-outfit text-slate-900">{startup.name}</h1>
+                                    <span className="px-3 py-1 bg-emerald-900/30 border border-emerald-500/30 rounded-full text-xs font-bold text-emerald-600 flex items-center gap-1">
                                         <CheckCircle2 className="w-3 h-3" /> KYC Verified
                                     </span>
                                 </div>
-                                <div className="flex items-center gap-4 text-sm text-slate-300 font-medium">
+                                <div className="flex items-center gap-4 text-sm text-slate-500 font-medium">
                                     <span className="flex items-center gap-1"><Factory className="w-4 h-4 text-slate-400" /> {startup.sector} • {startup.businessModel}</span>
-                                    <span className="flex items-center gap-1 text-slate-500">|</span>
-                                    <span className="flex items-center gap-1"><AlertTriangle className={`w-4 h-4 ${startup.risk === 'Low' ? 'text-green-400' : 'text-yellow-400'}`} /> {startup.risk} Risk Profile</span>
+                                    <span className="flex items-center gap-1 text-zinc-700">|</span>
+                                    <span className="flex items-center gap-1"><AlertTriangle className={`w-4 h-4 ${startup.risk === 'Low' ? 'text-emerald-600' : 'text-yellow-500'}`} /> {startup.risk} Risk Profile</span>
                                 </div>
                             </div>
                         </div>
 
-                        <Link href={`/messages?name=${encodeURIComponent(startup.name)}`} className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-lg shadow-indigo-500/25 flex items-center gap-2 w-full md:w-auto justify-center">
+                        <Link href={`/messages?name=${encodeURIComponent(startup.name)}`} className="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-colors shadow-[0_0_15px_-3px_rgba(163,230,53,0.3)] flex items-center gap-2 w-full md:w-auto justify-center">
                             <MessageSquare className="w-5 h-5" /> Open Deal Room
                         </Link>
                     </div>
@@ -119,15 +119,15 @@ export default function StartupProfile() {
                 {/* Main Content */}
                 <div className="md:col-span-2 space-y-8">
                     {/* Pitch Section */}
-                    <div className="glass-panel p-8 rounded-2xl">
-                        <h2 className="text-xl font-bold text-white mb-4 border-b border-white/10 pb-4 flex items-center gap-2">
-                            <Presentation className="w-5 h-5 text-pink-400" /> Executive Standard Pitch
+                    <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-8 rounded-2xl border border-slate-200 bg-white">
+                        <h2 className="text-xl font-bold text-slate-900 mb-4 border-b border-slate-200 pb-4 flex items-center gap-2">
+                            <Presentation className="w-5 h-5 text-indigo-400" /> Executive Standard Pitch
                         </h2>
-                        <p className="text-slate-300 leading-relaxed font-inter">{startup.desc}</p>
+                        <p className="text-slate-500 leading-relaxed font-inter">{startup.desc}</p>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
                             {startup.videos?.map((vid: any, idx: number) => (
-                                <div key={idx} className="aspect-video bg-black/50 border border-slate-700 rounded-xl flex items-center justify-center relative overflow-hidden group shadow-lg">
+                                <div key={idx} className="aspect-video bg-white border border-slate-200 rounded-xl flex items-center justify-center relative overflow-hidden group shadow-lg">
                                     {(playingVideoIdx === idx && vid.url) ? (
                                         <iframe
                                             src={`${vid.url}${vid.url.includes('?') ? '&' : '?'}autoplay=1`}
@@ -147,16 +147,16 @@ export default function StartupProfile() {
                                                 }
                                             }}
                                         >
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-4 z-10 transition-opacity">
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-4 z-10 transition-opacity">
                                                 <h3 className="text-white font-bold text-sm leading-tight">{vid.title}</h3>
-                                                {idx === 0 && <p className="text-slate-300 text-[10px] mt-1">Exclusive Verified Pitch</p>}
+                                                {idx === 0 && <p className="text-slate-500 text-[10px] mt-1">Exclusive Verified Pitch</p>}
                                             </div>
                                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                                                <div className="w-12 h-12 rounded-full bg-white/10 group-hover:bg-white/20 backdrop-blur-md flex items-center justify-center transition-all group-hover:scale-110">
-                                                    <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[14px] border-l-white border-b-[8px] border-b-transparent ml-1"></div>
+                                                <div className="w-12 h-12 rounded-full bg-white/20 group-hover:bg-emerald-600/80 backdrop-blur-md flex items-center justify-center transition-all group-hover:scale-110">
+                                                    <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[14px] border-l-white group-hover:border-l-zinc-950 border-b-[8px] border-b-transparent ml-1"></div>
                                                 </div>
                                             </div>
-                                            <img src={vid.thumb} alt={vid.title} className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-overlay group-hover:opacity-70 transition-opacity duration-500 delay-75 pointer-events-none" />
+                                            <img src={vid.thumb} alt={vid.title} className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-overlay group-hover:opacity-80 transition-opacity duration-500 delay-75 pointer-events-none" />
                                         </div>
                                     )}
                                 </div>
@@ -165,68 +165,68 @@ export default function StartupProfile() {
                     </div>
 
                     {/* Advanced Financial Chart */}
-                    <div className="bg-[#18191d] rounded-2xl p-6 shadow-2xl border border-white/5 space-y-8">
+                    <div className="bg-white border border-slate-200 shadow-sm rounded-2xl bg-white rounded-2xl p-6 shadow-xl border border-slate-200 space-y-8">
                         <div>
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-white font-bold text-lg flex items-center gap-2"><LineChart className="w-4 h-4 text-indigo-400" /> Revenue Growth (12M)</h3>
+                                <h3 className="text-slate-900 font-bold text-lg flex items-center gap-2"><LineChart className="w-4 h-4 text-emerald-600" /> Revenue Growth (12M)</h3>
                                 <div className="text-right">
-                                    <span className="text-indigo-400 font-mono text-sm font-bold block">Max: ₹{revChart.max}K</span>
-                                    <span className="text-slate-500 font-mono text-xs block">Min: ₹{revChart.min}K</span>
+                                    <span className="text-emerald-600 font-mono text-sm font-bold block">Max: ₹{revChart.max}K</span>
+                                    <span className="text-slate-400 font-mono text-xs block">Min: ₹{revChart.min}K</span>
                                 </div>
                             </div>
-                            <div className="relative h-40 w-full overflow-hidden rounded-xl border border-white/5">
+                            <div className="relative h-40 w-full overflow-hidden rounded-xl border border-slate-200 bg-white/50">
                                 <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                                     <defs>
                                         <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stopColor="#818cf8" stopOpacity="0.4" />
-                                            <stop offset="100%" stopColor="#818cf8" stopOpacity="0" />
+                                            <stop offset="0%" stopColor="#34d399" stopOpacity="0.2" />
+                                            <stop offset="100%" stopColor="#34d399" stopOpacity="0" />
                                         </linearGradient>
                                     </defs>
                                     <path d={revChart.area} fill="url(#revGradient)" />
-                                    <path d={revChart.path} fill="none" stroke="#818cf8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="drop-shadow-[0_0_8px_rgba(129,140,248,0.5)]" />
+                                    <path d={revChart.path} fill="none" stroke="#34d399" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
                             </div>
                         </div>
 
                         <div>
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-white font-bold text-lg flex items-center gap-2"><TrendingUp className="w-4 h-4 text-emerald-400" /> Net Profit Margin</h3>
+                                <h3 className="text-slate-900 font-bold text-lg flex items-center gap-2"><TrendingUp className="w-4 h-4 text-emerald-600" /> Net Profit Margin</h3>
                                 <div className="text-right">
-                                    <span className="text-emerald-400 font-mono text-sm font-bold block">Peak: ₹{profitChart.max}K</span>
+                                    <span className="text-emerald-600 font-mono text-sm font-bold block">Peak: ₹{profitChart.max}K</span>
                                 </div>
                             </div>
-                            <div className="relative h-40 w-full overflow-hidden rounded-xl border border-white/5">
+                            <div className="relative h-40 w-full overflow-hidden rounded-xl border border-slate-200 bg-white/50">
                                 <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                                     <defs>
                                         <linearGradient id="profitGradient" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stopColor="#34d399" stopOpacity="0.4" />
-                                            <stop offset="100%" stopColor="#34d399" stopOpacity="0" />
+                                            <stop offset="0%" stopColor="#a3e635" stopOpacity="0.2" />
+                                            <stop offset="100%" stopColor="#a3e635" stopOpacity="0" />
                                         </linearGradient>
                                     </defs>
                                     <path d={profitChart.area} fill="url(#profitGradient)" />
-                                    <path d={profitChart.path} fill="none" stroke="#34d399" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
+                                    <path d={profitChart.path} fill="none" stroke="#a3e635" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                     {/* Zero Line Marker if profit dips below zero */}
                                     {profitChart.min < 0 && (
-                                        <line x1="0" y1={`${100 - ((0 - profitChart.min) / (profitChart.max - profitChart.min)) * 100}`} x2="100" y2={`${100 - ((0 - profitChart.min) / (profitChart.max - profitChart.min)) * 100}`} stroke="#475569" strokeDasharray="2 2" strokeWidth="1" />
+                                        <line x1="0" y1={`${100 - ((0 - profitChart.min) / (profitChart.max - profitChart.min)) * 100}`} x2="100" y2={`${100 - ((0 - profitChart.min) / (profitChart.max - profitChart.min)) * 100}`} stroke="#52525b" strokeDasharray="2 2" strokeWidth="1" />
                                     )}
                                 </svg>
                             </div>
                         </div>
 
-                        <div className="border-t border-white/10 pt-6">
-                            <h3 className="text-white font-bold text-lg mb-4">Unit Economics & ROI</h3>
+                        <div className="border-t border-slate-200 pt-6">
+                            <h3 className="text-slate-900 font-bold text-lg mb-4">Unit Economics & ROI</h3>
                             <div className="grid grid-cols-3 gap-4 text-center">
-                                <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                                <div className="bg-slate-100 p-4 rounded-xl border border-slate-200">
                                     <p className="text-xs text-slate-400 uppercase tracking-widest mb-1">Proj. ROI</p>
-                                    <p className="text-2xl font-bold text-pink-400 font-mono">{startup.financials?.roi}%</p>
+                                    <p className="text-2xl font-bold text-emerald-600 font-mono">{startup.financials?.roi}%</p>
                                 </div>
-                                <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                                <div className="bg-slate-100 p-4 rounded-xl border border-slate-200">
                                     <p className="text-xs text-slate-400 uppercase tracking-widest mb-1">CAC</p>
-                                    <p className="text-xl font-bold text-slate-200 font-mono">₹{startup.financials?.cac}</p>
+                                    <p className="text-xl font-bold text-slate-600 font-mono">₹{startup.financials?.cac}</p>
                                 </div>
-                                <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                                <div className="bg-slate-100 p-4 rounded-xl border border-slate-200">
                                     <p className="text-xs text-slate-400 uppercase tracking-widest mb-1">Est. LTV</p>
-                                    <p className="text-xl font-bold text-slate-200 font-mono">₹{startup.financials?.ltv}</p>
+                                    <p className="text-xl font-bold text-slate-600 font-mono">₹{startup.financials?.ltv}</p>
                                 </div>
                             </div>
                         </div>
@@ -235,82 +235,82 @@ export default function StartupProfile() {
 
                 {/* Sidebar Data */}
                 <div className="space-y-6">
-                    <div className="glass-panel p-6 rounded-2xl sticky top-24">
-                        <h3 className="text-lg font-bold text-white mb-6 border-b border-white/10 pb-4 flex items-center gap-2">
-                            <TrendingUp className="w-5 h-5 text-green-400" /> Financial Ask
+                    <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 rounded-2xl sticky top-24 border border-slate-200 bg-white">
+                        <h3 className="text-lg font-bold text-slate-900 mb-6 border-b border-slate-200 pb-4 flex items-center gap-2">
+                            <TrendingUp className="w-5 h-5 text-emerald-600" /> Financial Ask
                         </h3>
 
                         <div className="space-y-4 mb-8">
                             <div>
-                                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Target Capital</p>
-                                <p className="text-2xl font-bold font-mono text-white">₹ {(startup.requested / 100000).toFixed(1)} Lakhs</p>
+                                <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Target Capital</p>
+                                <p className="text-2xl font-bold font-mono text-slate-800">₹ {(startup.requested / 100000).toFixed(1)} Lakhs</p>
                             </div>
-                            <div className="w-full h-px bg-slate-800"></div>
+                            <div className="w-full h-px bg-slate-200"></div>
                             <div>
-                                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Equity Offered</p>
-                                <p className="text-xl font-bold text-white">{startup.equity}% Common Stock</p>
+                                <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Equity Offered</p>
+                                <p className="text-xl font-bold text-emerald-600">{startup.equity}% Common Stock</p>
                             </div>
-                            <div className="w-full h-px bg-slate-800"></div>
+                            <div className="w-full h-px bg-slate-200"></div>
                             <div>
-                                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Implied Valuation</p>
-                                <p className="text-lg font-mono text-slate-300">₹ {((startup.requested / startup.equity) * 100 / 10000000).toFixed(2)} Cr</p>
+                                <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Implied Valuation</p>
+                                <p className="text-lg font-mono text-slate-500">₹ {((startup.requested / startup.equity) * 100 / 10000000).toFixed(2)} Cr</p>
                             </div>
                         </div>
 
-                        <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-4 flex items-center gap-2">
-                            <Briefcase className="w-5 h-5 text-yellow-400" /> Current Metrics
+                        <h3 className="text-lg font-bold text-slate-900 mb-4 border-b border-slate-200 pb-4 flex items-center gap-2">
+                            <Briefcase className="w-5 h-5 text-emerald-600" /> Current Metrics
                         </h3>
 
                         <div className="space-y-4 mb-8">
                             <div className="flex justify-between items-center">
                                 <span className="text-sm text-slate-400">Monthly Revenue</span>
-                                <span className="font-mono text-white font-medium">₹ {(startup.revenue / 1000).toFixed(0)}K</span>
+                                <span className="font-mono text-slate-600 font-medium">₹ {(startup.revenue / 1000).toFixed(0)}K</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-sm text-slate-400">Burn Rate</span>
-                                <span className="font-mono text-white font-medium">₹ {(startup.burn / 1000).toFixed(0)}K</span>
+                                <span className="font-mono text-red-400 font-medium">₹ {(startup.burn / 1000).toFixed(0)}K</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-sm text-slate-400">Runway</span>
-                                <span className="font-medium text-white">~14 Months</span>
+                                <span className="font-medium text-slate-600">~14 Months</span>
                             </div>
                         </div>
 
                         {/* AI Intelligence Suite */}
-                        <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-4 flex items-center gap-2">
+                        <h3 className="text-lg font-bold text-slate-900 mb-4 border-b border-slate-200 pb-4 flex items-center gap-2">
                             <BrainCircuit className="w-5 h-5 text-indigo-400" /> AI Intelligence Suite
                         </h3>
                         <div className="space-y-2">
                             <Link href={`/startups/${idValue}/due-diligence`}
-                                className="flex items-center gap-3 p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 hover:bg-indigo-500/20 transition-colors group">
-                                <BrainCircuit className="w-4 h-4 text-indigo-400 shrink-0" />
+                                className="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-200 hover:border-emerald-400 transition-colors group">
+                                <BrainCircuit className="w-4 h-4 text-indigo-400 shrink-0 group-hover:text-emerald-600 transition-colors" />
                                 <div>
-                                    <p className="text-sm font-semibold text-white">AI Due Diligence</p>
-                                    <p className="text-[10px] text-slate-500">Full financial + risk analysis</p>
+                                    <p className="text-sm font-semibold text-slate-600 group-hover:text-slate-800 transition-colors">AI Due Diligence</p>
+                                    <p className="text-[10px] text-slate-400">Full financial + risk analysis</p>
                                 </div>
                             </Link>
                             <Link href={`/startups/${idValue}/health`}
-                                className="flex items-center gap-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors group">
-                                <HeartPulse className="w-4 h-4 text-emerald-400 shrink-0" />
+                                className="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-200 hover:border-emerald-400 transition-colors group">
+                                <HeartPulse className="w-4 h-4 text-emerald-600 shrink-0 group-hover:text-emerald-600 transition-colors" />
                                 <div>
-                                    <p className="text-sm font-semibold text-white">Health Monitor</p>
-                                    <p className="text-[10px] text-slate-500">Live operational vitals</p>
+                                    <p className="text-sm font-semibold text-slate-600 group-hover:text-slate-800 transition-colors">Health Monitor</p>
+                                    <p className="text-[10px] text-slate-400">Live operational vitals</p>
                                 </div>
                             </Link>
                             <Link href={`/startups/${idValue}/trust`}
-                                className="flex items-center gap-3 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 transition-colors group">
-                                <ShieldCheck className="w-4 h-4 text-blue-400 shrink-0" />
+                                className="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-200 hover:border-emerald-400 transition-colors group">
+                                <ShieldCheck className="w-4 h-4 text-blue-400 shrink-0 group-hover:text-emerald-600 transition-colors" />
                                 <div>
-                                    <p className="text-sm font-semibold text-white">Trust Score</p>
-                                    <p className="text-[10px] text-slate-500">Verified reputation rating</p>
+                                    <p className="text-sm font-semibold text-slate-600 group-hover:text-slate-800 transition-colors">Trust Score</p>
+                                    <p className="text-[10px] text-slate-400">Verified reputation rating</p>
                                 </div>
                             </Link>
                             <Link href={`/startups/${idValue}/compliance`}
-                                className="flex items-center gap-3 p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20 transition-colors group">
-                                <Scale className="w-4 h-4 text-purple-400 shrink-0" />
+                                className="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-200 hover:border-emerald-400 transition-colors group">
+                                <Scale className="w-4 h-4 text-purple-400 shrink-0 group-hover:text-emerald-600 transition-colors" />
                                 <div>
-                                    <p className="text-sm font-semibold text-white">Legal Compliance</p>
-                                    <p className="text-[10px] text-slate-500">Regulatory status check</p>
+                                    <p className="text-sm font-semibold text-slate-600 group-hover:text-slate-800 transition-colors">Legal Compliance</p>
+                                    <p className="text-[10px] text-slate-400">Regulatory status check</p>
                                 </div>
                             </Link>
                         </div>

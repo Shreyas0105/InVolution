@@ -7,53 +7,58 @@ import { useSession, signOut } from "next-auth/react";
 export default function Navbar() {
     const { data: session, status } = useSession();
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-white/10 px-6 py-4">
+        <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-6 py-3 shadow-sm">
             <div className="container mx-auto flex items-center justify-between">
-                <Link href="/" className="font-outfit text-2xl font-bold tracking-tighter flex items-center gap-3 text-white">
-                    <Image src="/logo.svg" alt="InVolution Logo" width={40} height={40} className="w-10 h-10 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]" />
-                    InVolution
+                {/* Logo */}
+                <Link href="/" className="font-outfit text-lg font-bold tracking-tight flex items-center gap-2.5 text-slate-900">
+                    <Image src="/logo.svg" alt="InVolution Logo" width={30} height={30} className="w-7 h-7 object-contain" />
+                    <span>InVolution</span>
                 </Link>
-                <div className="hidden md:flex items-center gap-8 text-sm font-medium font-inter text-slate-300">
-                    <Link href="/about" className="hover:text-white transition-colors">About</Link>
+
+                {/* Nav links */}
+                <div className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-500">
+                    <Link href="/about" className="hover:text-emerald-700 transition-colors">About</Link>
 
                     {status === "authenticated" ? (
                         (session?.user as any)?.role === "investor" ? (
-                            <Link href="/investors/dashboard" className="hover:text-white transition-colors">Investor Dashboard</Link>
+                            <Link href="/investors/dashboard" className="hover:text-emerald-700 transition-colors">Portfolio</Link>
                         ) : (
-                            <Link href="/startups/dashboard" className="hover:text-white transition-colors">Startup Dashboard</Link>
+                            <Link href="/startups/dashboard" className="hover:text-emerald-700 transition-colors">Dashboard</Link>
                         )
                     ) : (
                         <>
-                            <Link href="/startups" className="hover:text-white transition-colors">Startups</Link>
-                            <Link href="/investors" className="hover:text-white transition-colors">Investors</Link>
+                            <Link href="/startups" className="hover:text-emerald-700 transition-colors">Startups</Link>
+                            <Link href="/investors" className="hover:text-emerald-700 transition-colors">Investors</Link>
                         </>
                     )}
 
-                    <Link href="/rules" className="hover:text-white transition-colors">Rules & FAQ</Link>
+                    <Link href="/rules" className="hover:text-emerald-700 transition-colors">Rules & FAQ</Link>
                 </div>
-                <div className="flex items-center gap-4">
+
+                {/* Right side */}
+                <div className="flex items-center gap-3">
                     {status === "authenticated" ? (
                         <>
                             <Link
-                                href={(session?.user as any)?.role === "investor" ? "/investors/dashboard" : "/startups/dashboard"}
-                                className="text-sm font-medium hover:text-indigo-400 transition-colors"
+                                href={(session?.user as any)?.role === "investor" ? "/investors/search" : "/startups/dashboard"}
+                                className="hidden md:block text-sm font-semibold text-slate-500 hover:text-emerald-700 transition-colors"
                             >
-                                {(session?.user as any)?.role === "investor" ? "Investor Dashboard" : "Startup Dashboard"}
+                                {(session?.user as any)?.role === "investor" ? "Discover" : "Dashboard"}
                             </Link>
-                            <div className="flex items-center gap-3 pl-4 border-l border-white/10">
-                                <img src={session.user?.image || ""} alt="Avatar" className="w-8 h-8 rounded-full border border-white/20" />
-                                <button onClick={() => signOut()} className="text-sm font-medium text-slate-400 hover:text-white transition-colors">
+                            <div className="flex items-center gap-3 pl-3 border-l border-slate-200">
+                                <img src={session.user?.image || ""} alt="Avatar" className="w-7 h-7 rounded-full border-2 border-emerald-200 shadow-sm" />
+                                <button onClick={() => signOut()} className="text-xs font-semibold text-slate-400 hover:text-rose-500 transition-colors">
                                     Sign Out
                                 </button>
                             </div>
                         </>
                     ) : (
                         <>
-                            <Link href="/login" className="text-sm font-medium hover:text-white transition-colors">
+                            <Link href="/login" className="text-sm font-semibold text-slate-500 hover:text-emerald-700 transition-colors">
                                 Login
                             </Link>
-                            <Link href="/login" className="text-sm font-medium bg-white text-slate-950 px-4 py-2 rounded-full hover:bg-slate-200 transition-colors">
-                                Get Started
+                            <Link href="/login" className="text-sm font-semibold bg-emerald-600 text-white px-5 py-2 rounded-full hover:bg-emerald-700 transition-colors shadow-sm">
+                                Investor Portal
                             </Link>
                         </>
                     )}
