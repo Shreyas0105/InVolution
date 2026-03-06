@@ -40,6 +40,7 @@ export interface IStartup extends Document {
     videos: IVideo[];
     financials: IFinancials;
     financialUpdates: IFinancialUpdate[];
+    analysis?: string;
 
     // New Professional Domains
     basicInfo?: {
@@ -157,6 +158,7 @@ const StartupSchema: Schema = new Schema({
     videos: { type: [VideoSchema], default: [] },
     financials: { type: FinancialsSchema, default: {} },
     financialUpdates: { type: [FinancialUpdateSchema], default: [] },
+    analysis: { type: String, default: "" },
 
     // New Domains
     basicInfo: {

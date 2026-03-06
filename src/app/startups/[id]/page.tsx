@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArrowLeft, MessageSquare, Briefcase, TrendingUp, Presentation, CheckCircle2, Factory, LineChart, AlertTriangle, Activity, BrainCircuit, ShieldCheck, Scale, HeartPulse } from "lucide-react";
+import AIChat from "@/components/AIChat";
 
 // Remove mock data. We will fetch dynamically now.
 
@@ -230,6 +231,11 @@ export default function StartupProfile() {
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    {/* AI Analyst Chat Widget */}
+                    <div className="mt-8 flex flex-col h-[600px]">
+                        <AIChat startupId={(startup._id?.toString() || idValue) as string} />
                     </div>
                 </div>
 

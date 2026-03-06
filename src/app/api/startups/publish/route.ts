@@ -81,6 +81,13 @@ export async function POST(req: Request) {
 
         const newStartup = await Startup.create(newStartupData);
 
+        // Fire and forget AI Analysis trigger
+        fetch(`http://localhost:${process.env.PORT || 3000}/api/ai-analyze`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ startupId: newStartup._id }),
+        }).catch(err => console.error("Failed to trigger initial AI Analysis:", err));
+
         return NextResponse.json({ success: true, data: newStartup }, { status: 201 });
     } catch (error: any) {
         console.error("Failed to publish startup:", error);
