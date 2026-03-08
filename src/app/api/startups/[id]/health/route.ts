@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Startup from '@/models/Startup';
 import { GoogleGenAI, Type, Schema } from '@google/genai';
+import mongoose from 'mongoose';
 
 // Initialize the Google Gen AI client
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -55,6 +56,34 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
         const startupDataString = JSON.stringify(startup, null, 2);
 
+        // --- FINANCIAL ANOMALY DETECTOR ---
+        let financialAnomaliesContext = "No significant financial anomalies detected in the last 6 months.";
+        const revArray = (startup as any).aiReady?.last6MonthsRev;
+
+        if (revArray && Array.isArray(revArray) && revArray.length > 1) {
+            const anomalies: string[] = [];
+            for (let i = 1; i < revArray.length; i++) {
+                const prev = revArray[i - 1];
+                const curr = revArray[i];
+                if (prev > 0) {
+                    const pctChange = ((curr - prev) / prev) * 100;
+                    if (pctChange <= -30) {
+                        anomalies.push(`CRITICAL DROP: Month ${i} to Month ${i + 1} saw a ${pctChange.toFixed(1)}% drop in revenue (from ${prev} to ${curr}).`);
+                    } else if (pctChange >= 30) {
+                        anomalies.push(`SUDDEN SPIKE: Month ${i} to Month ${i + 1} saw a ${pctChange.toFixed(1)}% spike in revenue (from ${prev} to ${curr}).`);
+                    }
+                }
+            }
+
+            if (anomalies.length > 0) {
+                financialAnomaliesContext = `DETECTED FINANCIAL ANOMALIES:\n${anomalies.join('\n')}\n` +
+                    `\nCRITICAL DIRECTIVE:\n` +
+                    `- You MUST acknowledge these anomalies.\n` +
+                    `- If there is a CRITICAL DROP in revenue, you MUST severely penalize the \`overallHealth\` score (pushing it towards Poor or Critical) and the 'growth' & 'revenue' pillars.\n` +
+                    `- You MUST generate a 'critical' or 'warning' alert explicitly mentioning the revenue drop or spike.\n`;
+            }
+        }
+
         const prompt = `
             You are an expert startup financial analyst AI.
             Analyze the following startup data to assess the company's real-time operational health.
@@ -78,6 +107,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
             Also generate an array of \`alerts\` (level: 'critical', 'warning', or 'info') if you spot extreme values (e.g., runway < 6 months, churn > 10%, high burn vs revenue, or strong MoM growth).
             Extract the \`revenueTrend\` (last6MonthsRev) and \`expenseTrend\` (last6MonthsExp) directly from the aiReady data if it exists, otherwise return empty arrays.
+
+            ${financialAnomaliesContext}
 
             Startup Data:
             ${startupDataString}
