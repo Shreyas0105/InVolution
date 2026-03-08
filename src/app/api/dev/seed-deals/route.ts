@@ -1,0 +1,52 @@
+import { NextResponse } from 'next/server';
+import dbConnect from '@/lib/mongodb';
+import { Deal } from '@/models/Deal';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+
+export async function GET() {
+    try {
+        await dbConnect();
+
+        // Use getServerSession to get the securely logged-in user
+        const session = await getServerSession(authOptions);
+
+        if (!session || !session.user) {
+            return NextResponse.json({ success: false, error: 'Please log in to the web app first to seed data for your account.' }, { status: 401 });
+        }
+
+        const investorId = session.user.id || session.user.email;
+
+        // Create a dummy Executed Deal
+        await Deal.create({
+            startupId: "dummy-startup-1",
+            startupName: "TechNova Solutions",
+            investorId: investorId,
+            status: "executed",
+            termAmount: "₹ 75,00,000",
+            termEquity: "12.5%",
+            currentPhase: 5
+        });
+
+        // Create a dummy Negotiating Deal with Chat History
+        await Deal.create({
+            startupId: "dummy-startup-2",
+            startupName: "GreenFuture Energy",
+            investorId: investorId,
+            status: "negotiating",
+            termAmount: "₹ 1,50,00,000",
+            termEquity: "15.0%",
+            currentPhase: 3,
+            messages: [
+                { senderId: "startup-founder", text: "We have finalized the term sheet.", time: "Yesterday" },
+                { senderId: investorId, text: "Looks good, I will have my lawyers review it and send the final version.", time: "1 hour ago" }
+            ]
+        });
+
+        return NextResponse.json({ success: true, message: `Successfully seeded 2 deals for Investor: ${investorId}. Go refresh the Dashboard!` });
+
+    } catch (error: any) {
+        console.error("Error seeding deals:", error);
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    }
+}

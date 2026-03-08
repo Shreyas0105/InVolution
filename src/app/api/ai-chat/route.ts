@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import dbConnect from "@/lib/mongodb";
 import Startup from "@/models/Startup";
+import AIFeedback from "@/models/AIFeedback";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
@@ -21,6 +22,72 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, error: 'Startup not found' }, { status: 404 });
         }
 
+        // --- GENERATE EMBEDDING FOR THE INCOMING QUESTION ---
+        let questionEmbedding: number[] = [];
+        try {
+            const embedRes = await ai.models.embedContent({
+                model: 'text-embedding-004',
+                contents: `Question/Context: ${question}`
+            });
+            if (embedRes.embeddings && embedRes.embeddings.length > 0 && embedRes.embeddings[0].values) {
+                questionEmbedding = embedRes.embeddings[0].values;
+            }
+        } catch (embedErr) {
+            console.error("Failed to embed question, falling back to standard search", embedErr);
+        }
+
+        // --- FETCH DYNAMIC FEW-SHOT EXAMPLES (RAG via Vector Search) ---
+        let pastExamples: any[] = [];
+
+        if (questionEmbedding.length > 0) {
+            // Use Atlas Vector Search if we have an embedding
+            pastExamples = await AIFeedback.aggregate([
+                {
+                    $vectorSearch: {
+                        index: 'vector_index',
+                        path: 'embedding',
+                        queryVector: questionEmbedding,
+                        numCandidates: 10,
+                        limit: 3,
+                        filter: {
+                            module: 'chat',
+                            feedbackType: 'upvote'
+                        }
+                    }
+                },
+                {
+                    $project: {
+                        context: 1,
+                        aiResponse: 1,
+                        score: { $meta: 'vectorSearchScore' }
+                    }
+                }
+            ]);
+        } else {
+            // Fallback to standard DB query if embedding generation failed
+            pastExamples = await AIFeedback.find({
+                module: 'chat',
+                feedbackType: 'upvote',
+                context: { $exists: true, $ne: '' }
+            })
+                .sort({ createdAt: -1 })
+                .limit(3)
+                .lean();
+        }
+
+        let fewShotString = "";
+        if (pastExamples && pastExamples.length > 0) {
+            fewShotString = `
+            --- EXAMPLES OF HIGHLY RATED PAST ANSWERS (Learn from these) ---
+            The following are previous answers you gave that the investor explicitly rated as excellent. 
+            Adopt a similar tone, detail level, and analytical rigor in your current response:
+            
+            `;
+            pastExamples.forEach((ex: any, idx: number) => {
+                fewShotString += `[Example ${idx + 1}]\nQuestion: ${ex.context}\nYour Perfect Answer: ${ex.aiResponse}\n\n`;
+            });
+        }
+
         const prompt = `
             You are the "InVolution AI Analyst", an expert investment analyst AI assistant for an investor platform.
             
@@ -37,6 +104,7 @@ export async function POST(req: Request) {
             Previous AI Analysis:
             ${startup.analysis || "No preliminary analysis was available."}
             ---
+            ${fewShotString}
 
             An investor is asking you a question about this startup.
             Answer clearly, professionally, and accurately based ONLY on the provided startup information. If the information is not available, state that you do not have sufficient data.

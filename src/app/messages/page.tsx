@@ -88,6 +88,7 @@ function DealWorkspace() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const startupName = searchParams.get('name') || "HealthSync Inc.";
+    const startupId = searchParams.get('startupId');
 
     const [activeTab, setActiveTab] = useState<"chat" | "trust" | "diligence" | "agreement">("chat");
     const [currentPhase, setCurrentPhase] = useState(3);
@@ -113,17 +114,62 @@ function DealWorkspace() {
     const [investorSignature, setInvestorSignature] = useState("");
     const agreementSigned = negotiationPhase === "executed";
 
+    // Fetch existing deal data
+    useEffect(() => {
+        if (!startupId) return;
+        const fetchDeal = async () => {
+            try {
+                const res = await fetch(`/api/deals?startupId=${startupId}`);
+                const data = await res.json();
+                if (data.success && data.deal) {
+                    // Map DB messages to UI format
+                    setMessages(data.deal.messages.map((m: any) => ({
+                        id: m._id || Math.random(),
+                        sender: 'me', // Simplistic approach: assuming investor is viewing their own messages
+                        text: m.text,
+                        time: m.time
+                    })));
+
+                    if (data.deal.currentPhase) setCurrentPhase(data.deal.currentPhase);
+                    if (data.deal.status === 'executed') setNegotiationPhase('executed');
+                }
+            } catch (err) {
+                console.error("Failed to fetch deal", err);
+            }
+        };
+        fetchDeal();
+    }, [startupId]);
+
     const advancePhase = () => {
         if (currentPhase >= 5) return;
         setBubbleTrigger(t => t + 1);
         setTimeout(() => setCurrentPhase(p => Math.min(5, p + 1)), 200);
     };
 
-    const sendMessage = (e: React.FormEvent) => {
+    const sendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!inputMessage.trim()) return;
-        setMessages(m => [...m, { id: Date.now(), sender: "me", text: inputMessage, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+        if (!inputMessage.trim() || !startupId) return;
+
+        const newMsg = { id: Date.now(), sender: "me", text: inputMessage, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+
+        // Optimistic UI update
+        setMessages(m => [...m, newMsg]);
         setInputMessage("");
+
+        // Save to DB
+        try {
+            await fetch('/api/deals', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    startupId,
+                    startupName,
+                    text: newMsg.text
+                })
+            });
+        } catch (err) {
+            console.error("Failed to save message", err);
+        }
     };
 
     const scheduleMeeting = (e: React.FormEvent) => {
@@ -190,8 +236,8 @@ function DealWorkspace() {
                                 <div key={phase.num} className={`relative z-10 flex gap-3 items-start py-3 px-2 rounded-xl transition-all ${isCurrent ? 'bg-white/8 ' : ''} ${isLocked ? 'opacity-35' : ''}`}>
                                     {/* Phase bubble */}
                                     <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${isPast ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.4)]' :
-                                            isCurrent ? `${PHASE_COLOR[phase.num]} shadow-[0_0_16px_rgba(99,102,241,0.5)] ring-2 ring-white/30` :
-                                                'bg-slate-700 border border-slate-600'
+                                        isCurrent ? `${PHASE_COLOR[phase.num]} shadow-[0_0_16px_rgba(99,102,241,0.5)] ring-2 ring-white/30` :
+                                            'bg-slate-700 border border-slate-600'
                                         }`}>
                                         {isPast ? <CheckCircle2 className="w-5 h-5 text-white" /> : <Icon className="w-4 h-4 text-white" />}
                                     </div>

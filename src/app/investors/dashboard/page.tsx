@@ -1,20 +1,50 @@
 "use client";
 
 import Link from "next/link";
-import { FileText, MessageSquare, TrendingUp, Download, Eye, Clock } from "lucide-react";
+import { FileText, MessageSquare, TrendingUp, Download, Eye, Clock, ShieldCheck, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
 
-// Mock Data for Investor Dashboard
-const AGREEMENTS = [
-    { id: "AGR-9281", startup: "HealthSync Inc.", date: "Feb 21, 2026", amount: "₹ 50,00,000", equity: "10.0%", status: "Executed" },
-    { id: "AGR-8342", startup: "EcoGrid", date: "Jan 15, 2026", amount: "₹ 1,00,00,000", equity: "8.5%", status: "Executed" },
-];
-
-const ACTIVE_CHATS = [
-    { id: 1, startup: "PayFlow", lastMessage: "Let's align on the valuation for the seed round...", time: "2 hours ago", unread: 2 },
-    { id: 2, startup: "EduVerse", lastMessage: "We have updated the pitch deck with Q4 metrics.", time: "1 day ago", unread: 0 },
-];
+// Types corresponding to our API response
+interface Agreement { id: string; startup: string; date: string; amount: string; equity: string; status: string; }
+interface ActiveChat { id: string; startupId: string; startup: string; lastMessage: string; time: string; unread: number; }
+interface PortfolioStats { totalCapital: string; activeStartups: number; }
 
 export default function InvestorDashboard() {
+    const [agreements, setAgreements] = useState<Agreement[]>([]);
+    const [chats, setChats] = useState<ActiveChat[]>([]);
+    const [stats, setStats] = useState<PortfolioStats>({ totalCapital: "₹ 0", activeStartups: 0 });
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                const res = await fetch('/api/investors/dashboard');
+                const data = await res.json();
+
+                if (data.success) {
+                    setAgreements(data.executedAgreements || []);
+                    setChats(data.activeChats || []);
+                    setStats(data.portfolioStats || { totalCapital: "₹ 0", activeStartups: 0 });
+                }
+            } catch (err) {
+                console.error("Failed to load dashboard data:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="container mx-auto px-6 py-24 max-w-7xl min-h-[calc(100vh-80px)] flex flex-col items-center justify-center">
+                <Loader2 className="w-12 h-12 animate-spin text-emerald-500 mb-4" />
+                <h2 className="text-xl font-outfit text-slate-800">Loading your portfolio...</h2>
+            </div>
+        );
+    }
+
     return (
         <div className="container mx-auto px-6 py-12 max-w-7xl min-h-[calc(100vh-80px)]">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
@@ -37,50 +67,57 @@ export default function InvestorDashboard() {
                         </h2>
 
                         <div className="space-y-4">
-                            {AGREEMENTS.map((agr) => (
-                                <div key={agr.id} className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-emerald-400 transition-colors">
-                                    <div>
-                                        <div className="flex items-center gap-3 mb-1">
-                                            <h3 className="font-bold text-slate-800 font-outfit text-lg">{agr.startup}</h3>
-                                            <span className="px-2 py-0.5 bg-emerald-50 border border-emerald-300 text-emerald-600 text-[10px] font-bold uppercase rounded-full tracking-wider">
-                                                {agr.status}
-                                            </span>
-                                        </div>
-                                        <p className="text-sm text-slate-9000 flex items-center gap-4">
-                                            <span>Ref: {agr.id}</span>
-                                            <span>Date: {agr.date}</span>
-                                        </p>
-                                    </div>
-
-                                    <div className="flex items-center gap-6 w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t border-slate-200 md:border-none justify-between md:justify-end">
-                                        <div className="text-right">
-                                            <p className="text-xs text-slate-9000 mb-0.5">Investment</p>
-                                            <p className="font-mono text-slate-800 font-semibold">{agr.amount}</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-xs text-slate-9000 mb-0.5">Equity</p>
-                                            <p className="font-mono text-slate-800 font-semibold">{agr.equity}</p>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <Link
-                                                href={`/messages/agreement?startup=${encodeURIComponent(agr.startup)}&amount=${encodeURIComponent(agr.amount)}&equity=${encodeURIComponent(agr.equity)}&signature=John+Doe`}
-                                                className="p-2 bg-slate-50 border border-slate-300 hover:bg-slate-200 text-slate-500 hover:text-emerald-600 rounded-lg transition-colors group"
-                                                title="View Document"
-                                            >
-                                                <Eye className="w-4 h-4" />
-                                            </Link>
-                                            {/* In a real app, this would trigger a PDF blob download. Here it takes them to the printable view where they can 'Save as PDF' */}
-                                            <Link
-                                                href={`/messages/agreement?startup=${encodeURIComponent(agr.startup)}&amount=${encodeURIComponent(agr.amount)}&equity=${encodeURIComponent(agr.equity)}&signature=John+Doe`}
-                                                className="p-2 bg-slate-50 border border-slate-300 hover:bg-slate-200 text-slate-500 hover:text-emerald-600 rounded-lg transition-colors"
-                                                title="Download PDF"
-                                            >
-                                                <Download className="w-4 h-4" />
-                                            </Link>
-                                        </div>
-                                    </div>
+                            {agreements.length === 0 ? (
+                                <div className="text-center py-8 opacity-50 bg-slate-50 rounded-xl border border-slate-100">
+                                    <FileText className="w-8 h-8 text-zinc-700 mx-auto mb-2" />
+                                    <p className="text-slate-900 text-sm">No executed agreements yet.</p>
+                                    <Link href="/investors/search" className="text-emerald-600 font-bold text-sm hover:underline mt-2 inline-block">Find Startups to invest in.</Link>
                                 </div>
-                            ))}
+                            ) : (
+                                agreements.map((agr) => (
+                                    <div key={agr.id} className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-emerald-400 transition-colors">
+                                        <div>
+                                            <div className="flex items-center gap-3 mb-1">
+                                                <h3 className="font-bold text-slate-800 font-outfit text-lg">{agr.startup}</h3>
+                                                <span className="px-2 py-0.5 bg-emerald-50 border border-emerald-300 text-emerald-600 text-[10px] font-bold uppercase rounded-full tracking-wider">
+                                                    {agr.status}
+                                                </span>
+                                            </div>
+                                            <p className="text-sm text-slate-9000 flex items-center gap-4">
+                                                <span>Ref: {agr.id}</span>
+                                                <span>Date: {agr.date}</span>
+                                            </p>
+                                        </div>
+
+                                        <div className="flex items-center gap-6 w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t border-slate-200 md:border-none justify-between md:justify-end">
+                                            <div className="text-right">
+                                                <p className="text-xs text-slate-9000 mb-0.5">Investment</p>
+                                                <p className="font-mono text-slate-800 font-semibold">{agr.amount}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-xs text-slate-9000 mb-0.5">Equity</p>
+                                                <p className="font-mono text-slate-800 font-semibold">{agr.equity}</p>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <Link
+                                                    href={`/messages/agreement?startup=${encodeURIComponent(agr.startup)}&amount=${encodeURIComponent(agr.amount)}&equity=${encodeURIComponent(agr.equity)}&signature=John+Doe`}
+                                                    className="p-2 bg-slate-50 border border-slate-300 hover:bg-slate-200 text-slate-500 hover:text-emerald-600 rounded-lg transition-colors group"
+                                                    title="View Document"
+                                                >
+                                                    <Eye className="w-4 h-4" />
+                                                </Link>
+                                                {/* In a real app, this would trigger a PDF blob download. Here it takes them to the printable view where they can 'Save as PDF' */}
+                                                <Link
+                                                    href={`/messages/agreement?startup=${encodeURIComponent(agr.startup)}&amount=${encodeURIComponent(agr.amount)}&equity=${encodeURIComponent(agr.equity)}&signature=John+Doe`}
+                                                    className="p-2 bg-slate-50 border border-slate-300 hover:bg-slate-200 text-slate-500 hover:text-emerald-600 rounded-lg transition-colors"
+                                                    title="Download PDF"
+                                                >
+                                                    <Download className="w-4 h-4" />
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )))}
                         </div>
                     </div>
 
@@ -92,7 +129,7 @@ export default function InvestorDashboard() {
                             </div>
                             <div>
                                 <p className="text-sm text-slate-9000">Total Deployed Capital</p>
-                                <p className="text-2xl font-bold font-mono text-slate-800">₹ 1.5Cr</p>
+                                <p className="text-2xl font-bold font-mono text-slate-800">{stats.totalCapital}</p>
                             </div>
                         </div>
                         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 rounded-2xl flex items-center gap-4 border border-slate-200">
@@ -101,7 +138,7 @@ export default function InvestorDashboard() {
                             </div>
                             <div>
                                 <p className="text-sm text-slate-9000">Active Startups</p>
-                                <p className="text-2xl font-bold font-mono text-slate-800">2 Companies</p>
+                                <p className="text-2xl font-bold font-mono text-slate-800">{stats.activeStartups} Companies</p>
                             </div>
                         </div>
                     </div>
@@ -115,8 +152,8 @@ export default function InvestorDashboard() {
                         </h2>
 
                         <div className="space-y-4">
-                            {ACTIVE_CHATS.map((chat) => (
-                                <Link href="/messages" key={chat.id} className="block bg-white hover:bg-slate-200 border border-slate-200 hover:border-emerald-400 rounded-xl p-4 transition-all group shadow-sm">
+                            {chats.map((chat) => (
+                                <Link href={`/messages?startupId=${chat.startupId}&name=${encodeURIComponent(chat.startup)}`} key={chat.id} className="block bg-white hover:bg-slate-200 border border-slate-200 hover:border-emerald-400 rounded-xl p-4 transition-all group shadow-sm">
                                     <div className="flex justify-between items-start mb-2">
                                         <h3 className="font-bold text-slate-800 group-hover:text-emerald-600 transition-colors">{chat.startup}</h3>
                                         <span className="text-xs text-slate-9000 flex items-center gap-1"><Clock className="w-3 h-3" /> {chat.time}</span>
@@ -133,10 +170,10 @@ export default function InvestorDashboard() {
                                 </Link>
                             ))}
 
-                            {ACTIVE_CHATS.length === 0 && (
-                                <div className="text-center py-8 opacity-50">
+                            {chats.length === 0 && (
+                                <div className="text-center py-8 opacity-50 bg-slate-50 rounded-xl">
                                     <MessageSquare className="w-8 h-8 text-zinc-700 mx-auto mb-2" />
-                                    <p className="text-slate-9000 text-sm">No active negotiations.</p>
+                                    <p className="text-slate-900 text-sm">No active negotiations.</p>
                                 </div>
                             )}
                         </div>
@@ -147,5 +184,3 @@ export default function InvestorDashboard() {
         </div>
     );
 }
-// Local import for ShieldCheck to fix undefined error
-import { ShieldCheck } from "lucide-react";

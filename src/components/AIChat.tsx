@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Bot, Send, Loader2, User } from 'lucide-react';
+import { Bot, Send, Loader2, User, ThumbsUp, ThumbsDown } from 'lucide-react';
 
 interface AIChatProps {
     startupId: string;
@@ -10,6 +10,7 @@ interface AIChatProps {
 interface Message {
     role: 'user' | 'ai';
     content: string;
+    feedback?: 'upvote' | 'downvote';
 }
 
 export default function AIChat({ startupId }: AIChatProps) {
@@ -18,6 +19,29 @@ export default function AIChat({ startupId }: AIChatProps) {
     ]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+
+    const handleFeedback = async (index: number, type: 'upvote' | 'downvote') => {
+        const msg = messages[index];
+        if (msg.role !== 'ai' || msg.feedback) return;
+
+        setMessages(prev => prev.map((m, i) => i === index ? { ...m, feedback: type } : m));
+
+        try {
+            await fetch('/api/ai-feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    startupId,
+                    module: 'chat',
+                    context: index > 0 ? messages[index - 1].content : '',
+                    aiResponse: msg.content,
+                    feedbackType: type
+                })
+            });
+        } catch (error) {
+            console.error("Failed to submit feedback", error);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -71,11 +95,33 @@ export default function AIChat({ startupId }: AIChatProps) {
                                 <Bot className="w-4 h-4 text-emerald-400" />
                             </div>
                         )}
-                        <div className={`px-4 py-3 rounded-2xl max-w-[85%] text-sm leading-relaxed ${msg.role === 'user'
+                        <div className="flex flex-col gap-1 max-w-[85%]">
+                            <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${msg.role === 'user'
                                 ? 'bg-emerald-600 text-white rounded-tr-none'
                                 : 'bg-gray-800 text-gray-200 rounded-tl-none border border-gray-700'
-                            }`}>
-                            <div className="whitespace-pre-wrap">{msg.content}</div>
+                                }`}>
+                                <div className="whitespace-pre-wrap">{msg.content}</div>
+                            </div>
+                            {msg.role === 'ai' && i > 0 && (
+                                <div className="flex items-center gap-2 mt-1 ml-1">
+                                    <button
+                                        onClick={() => handleFeedback(i, 'upvote')}
+                                        disabled={!!msg.feedback}
+                                        className={`p-1 rounded hover:bg-gray-800 transition-colors ${msg.feedback === 'upvote' ? 'text-emerald-400' : 'text-gray-500'}`}
+                                        title="Good response"
+                                    >
+                                        <ThumbsUp className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                        onClick={() => handleFeedback(i, 'downvote')}
+                                        disabled={!!msg.feedback}
+                                        className={`p-1 rounded hover:bg-gray-800 transition-colors ${msg.feedback === 'downvote' ? 'text-red-400' : 'text-gray-500'}`}
+                                        title="Bad response"
+                                    >
+                                        <ThumbsDown className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                            )}
                         </div>
                         {msg.role === 'user' && (
                             <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center shrink-0">

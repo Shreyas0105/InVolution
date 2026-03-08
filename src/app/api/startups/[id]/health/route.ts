@@ -100,6 +100,38 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         const reportData = JSON.parse(response.text);
         reportData.generatedAt = new Date().toISOString();
 
+        // -----------------------------------------------------
+        // STEP 3: TRACK GROUND TRUTH (AI Predictions)
+        // Log the AI's prediction for future verification
+        // -----------------------------------------------------
+        import('@/models/AIPrediction').then(async (AIPredictionModule) => {
+            const AIPrediction = AIPredictionModule.default;
+
+            // Log Overall Health Score
+            await AIPrediction.create({
+                startupId: id,
+                predictedMetric: 'healthScore',
+                predictedValue: reportData.overallHealth,
+                status: 'pending'
+            });
+
+            // Try to extract runway months if available in pillars
+            const runwayPillar = reportData.pillars.find((p: any) => p.id === 'runway');
+            if (runwayPillar && runwayPillar.description) {
+                // E.g. "12 months remaining" -> 12
+                const match = runwayPillar.description.match(/(\d+)/);
+                if (match) {
+                    await AIPrediction.create({
+                        startupId: id,
+                        predictedMetric: 'runwayMonths',
+                        predictedValue: parseInt(match[1]),
+                        status: 'pending',
+                        confidenceScore: runwayPillar.score
+                    });
+                }
+            }
+        }).catch(err => console.error("Failed to log AI prediction asynchronously", err));
+
         return NextResponse.json({
             success: true,
             startup: {

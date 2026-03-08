@@ -108,7 +108,7 @@ export default function StartupProfile() {
                             </div>
                         </div>
 
-                        <Link href={`/messages?name=${encodeURIComponent(startup.name)}`} className="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-colors shadow-[0_0_15px_-3px_rgba(163,230,53,0.3)] flex items-center gap-2 w-full md:w-auto justify-center">
+                        <Link href={`/messages?startupId=${startup._id?.toString() || idValue}&name=${encodeURIComponent(startup.name)}`} className="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-colors shadow-[0_0_15px_-3px_rgba(163,230,53,0.3)] flex items-center gap-2 w-full md:w-auto justify-center">
                             <MessageSquare className="w-5 h-5" /> Open Deal Room
                         </Link>
                     </div>
