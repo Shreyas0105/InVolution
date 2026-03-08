@@ -89,6 +89,7 @@ function DealWorkspace() {
     const searchParams = useSearchParams();
     const startupName = searchParams.get('name') || "HealthSync Inc.";
     const startupId = searchParams.get('startupId');
+    const investorId = searchParams.get('investorId');
 
     const [activeTab, setActiveTab] = useState<"chat" | "trust" | "diligence" | "agreement">("chat");
     const [currentPhase, setCurrentPhase] = useState(3);
@@ -119,13 +120,16 @@ function DealWorkspace() {
         if (!startupId) return;
         const fetchDeal = async () => {
             try {
-                const res = await fetch(`/api/deals?startupId=${startupId}`);
+                const url = investorId ? `/api/deals?startupId=${startupId}&investorId=${investorId}` : `/api/deals?startupId=${startupId}`;
+                const res = await fetch(url);
                 const data = await res.json();
                 if (data.success && data.deal) {
-                    // Map DB messages to UI format
+                    const currentUser = data.currentUser;
+
+                    // Map DB messages to UI format with correct sides
                     setMessages(data.deal.messages.map((m: any) => ({
                         id: m._id || Math.random(),
-                        sender: 'me', // Simplistic approach: assuming investor is viewing their own messages
+                        sender: m.senderId === currentUser ? 'me' : 'them',
                         text: m.text,
                         time: m.time
                     })));
@@ -138,7 +142,7 @@ function DealWorkspace() {
             }
         };
         fetchDeal();
-    }, [startupId]);
+    }, [startupId, investorId]);
 
     const advancePhase = () => {
         if (currentPhase >= 5) return;
@@ -158,14 +162,19 @@ function DealWorkspace() {
 
         // Save to DB
         try {
+            const bodyPayload: any = {
+                startupId,
+                startupName,
+                text: newMsg.text
+            };
+            if (investorId) {
+                bodyPayload.investorId = investorId;
+            }
+
             await fetch('/api/deals', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    startupId,
-                    startupName,
-                    text: newMsg.text
-                })
+                body: JSON.stringify(bodyPayload)
             });
         } catch (err) {
             console.error("Failed to save message", err);

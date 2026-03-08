@@ -12,8 +12,11 @@ export async function GET(req: NextRequest) {
         if (!session || !session.user) {
             return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
+        const sessionUserId = session.user.id || session.user.email;
+        const requestedInvestorId = req.nextUrl.searchParams.get('investorId');
 
-        const investorId = session.user.id || session.user.email;
+        // Use provided investorId (if sender is startup), otherwise assume sender is the investor
+        const investorId = requestedInvestorId || sessionUserId;
         const startupId = req.nextUrl.searchParams.get('startupId');
 
         if (!startupId) {
@@ -22,7 +25,7 @@ export async function GET(req: NextRequest) {
 
         const deal = await Deal.findOne({ investorId, startupId }).lean();
 
-        return NextResponse.json({ success: true, deal });
+        return NextResponse.json({ success: true, deal, currentUser: sessionUserId });
 
     } catch (error: any) {
         console.error("Fetch Deal Error:", error);
@@ -38,9 +41,12 @@ export async function POST(req: NextRequest) {
         if (!session || !session.user) {
             return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
+        const sessionUserId = session.user.id || session.user.email;
+        const { startupId, startupName, text, investorId: requestedInvestorId } = await req.json();
 
-        const investorId = session.user.id || session.user.email;
-        const { startupId, startupName, text } = await req.json();
+        // If the frontend passed an investorId, the sender is likely the startup. 
+        // If not, the sender is the investor themselves.
+        const investorId = requestedInvestorId || sessionUserId;
 
         if (!startupId || !startupName || !text) {
             return NextResponse.json({ success: false, error: 'startupId, startupName, and text are required' }, { status: 400 });
@@ -54,7 +60,7 @@ export async function POST(req: NextRequest) {
         if (deal) {
             // Append message
             deal.messages.push({
-                senderId: investorId,
+                senderId: sessionUserId, // Whoever is logged in is the sender
                 text,
                 time: timeString
             });
